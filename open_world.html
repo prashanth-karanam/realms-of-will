@@ -3,85 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Realms of Will — Infinite Realistic 3D Open World</title>
+  <title>Realms of Will — Infinite Open World</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-    html, body {
-      width: 100%; height: 100%; overflow: hidden;
-      background: #0b1422; color: #f1f5f9;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #0b1422; color: #f1f5f9;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif; }
     #game-canvas { display: block; width: 100vw; height: 100vh; cursor: crosshair; }
     #hud { position: absolute; inset: 0; pointer-events: none; }
-    .card {
-      pointer-events: auto;
-      background: rgba(9, 14, 23, 0.86);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(10px);
-      border-radius: 12px;
-      padding: 10px 14px;
-      box-shadow: 0 12px 32px rgba(0,0,0,0.5);
-    }
-    #top-left {
-      position: absolute; top: 14px; left: 14px;
-      display: flex; flex-direction: column; gap: 8px; max-width: 400px;
-    }
+    .card { pointer-events: auto; background: rgba(9,14,23,0.86); border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(10px); border-radius: 12px; padding: 10px 14px; box-shadow: 0 12px 32px rgba(0,0,0,0.5); }
+    #top-left { position: absolute; top: 14px; left: 14px; display: flex; flex-direction: column; gap: 8px; max-width: 420px; }
     .row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-    button {
-      background: #172131; color: #e2e8f0; border: 1px solid rgba(255,255,255,0.14);
+    button { background: #172131; color: #e2e8f0; border: 1px solid rgba(255,255,255,0.14);
       border-radius: 7px; padding: 5px 10px; font-size: 11px; font-weight: 700;
-      cursor: pointer; transition: all 0.12s ease;
-    }
+      cursor: pointer; transition: all 0.12s ease; }
     button:hover { background: #223047; border-color: #f59e0b; }
-    button.active {
-      background: linear-gradient(135deg, #f59e0b, #d97706);
-      color: #0b0f17; border-color: #f59e0b;
-    }
+    button.active { background: linear-gradient(135deg,#f59e0b,#d97706); color: #0b0f17; border-color: #f59e0b; }
     button.stress { background: #3b1d2e; border-color: #f43f5e; color: #ffe4e6; }
     button.stress:hover { background: #581c38; }
     button.nav { background: #0f3d5e; border-color: #38bdf8; color: #e0f2fe; }
-
-    #top-right {
-      position: absolute; top: 14px; right: 14px;
-      width: 345px; display: flex; flex-direction: column; gap: 8px;
-    }
-    .telemetry-grid {
-      display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;
-      font-family: monospace; font-size: 11px;
-    }
-    .t-box {
-      background: rgba(255,255,255,0.04); padding: 5px 8px; border-radius: 6px;
-      border: 1px solid rgba(255,255,255,0.06);
-    }
+    #top-right { position: absolute; top: 14px; right: 14px; width: 340px; display: flex; flex-direction: column; gap: 8px; }
+    .telemetry-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 6px; font-family: monospace; font-size: 11px; }
+    .t-box { background: rgba(255,255,255,0.04); padding: 5px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06); }
     .t-lbl { color: #64748b; font-size: 10px; display: block; }
     .t-val { color: #38bdf8; font-weight: 800; font-size: 12px; }
-    .t-ok { color: #10b981; }
-    .t-warn { color: #f59e0b; }
-
-    #bottom-bar {
-      position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
-      border-radius: 30px; padding: 8px 18px;
-      display: flex; gap: 12px; font-size: 11px; color: #cbd5e1; white-space: nowrap;
-    }
-    .kbd {
-      background: rgba(255,255,255,0.16); color: #fff;
-      padding: 2px 6px; border-radius: 4px; font-weight: 800; margin-right: 3px;
-    }
-    #loading-banner {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      padding: 18px 28px; font-size: 14px; font-weight: 800; border-color: #f59e0b;
-    }
+    .t-ok { color: #10b981; } .t-warn { color: #f59e0b; } .t-crit { color: #f43f5e; }
+    #bottom-bar { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+      border-radius: 30px; padding: 8px 18px; display: flex; gap: 12px; font-size: 11px; color: #cbd5e1; white-space: nowrap; }
+    .kbd { background: rgba(255,255,255,0.16); color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: 800; margin-right: 3px; }
+    #loading-banner { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      padding: 18px 28px; font-size: 14px; font-weight: 800; border-color: #f59e0b; }
     #biome-toast { font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; }
   </style>
 </head>
 <body>
   <canvas id="game-canvas"></canvas>
-
   <div id="hud">
     <div id="top-left" class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-weight:800; font-size:14px;">🌍 Infinite Realistic Open World</span>
-        <span id="coords-out" style="font-family:monospace; font-size:11px; color:#f59e0b;">X:0 Z:0</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-weight:800;font-size:14px;">🌍 Realms of Will — Infinite World</span>
+        <span id="coords-out" style="font-family:monospace;font-size:11px;color:#f59e0b;">X:0 Z:0</span>
       </div>
       <div id="biome-toast">
         <span id="biome-name">Biome: Emerald Plains</span>
@@ -101,20 +62,19 @@
     </div>
 
     <div id="top-right" class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-weight:800; font-size:12px; color:#f59e0b;">⚡ WASM + Spatial Hash + SQA Telemetry</span>
-        <span id="gov-badge" style="font-size:10px; font-weight:800; color:#10b981;">60FPS READY</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-weight:800;font-size:12px;color:#f59e0b;">⚡ WASM Physics Engine</span>
+        <span id="gov-badge" style="font-size:10px;font-weight:800;color:#10b981;">OPTIMAL</span>
       </div>
       <div class="telemetry-grid">
         <div class="t-box"><span class="t-lbl">Frame Rate</span><span class="t-val t-ok" id="t-fps">-- FPS</span></div>
-        <div class="t-box"><span class="t-lbl">WASM Physics Step</span><span class="t-val" id="t-wasm">0.00 ms</span></div>
+        <div class="t-box"><span class="t-lbl">WASM Step</span><span class="t-val" id="t-wasm">0.00 ms</span></div>
         <div class="t-box"><span class="t-lbl">Draw Calls / Tris</span><span class="t-val" id="t-draws">-- / --</span></div>
-        <div class="t-box"><span class="t-lbl">O(1) Hash Checks</span><span class="t-val" id="t-hash">0</span></div>
-        <div class="t-box"><span class="t-lbl">Real 3D NPCs (Skeletal+GPU)</span><span class="t-val" id="t-npcs">0</span></div>
+        <div class="t-box"><span class="t-lbl">Spatial Hash Ops</span><span class="t-val" id="t-hash">0</span></div>
+        <div class="t-box"><span class="t-lbl">Skeletal + GPU NPCs</span><span class="t-val" id="t-npcs">0 + 0</span></div>
         <div class="t-box"><span class="t-lbl">Dragons / Items / Chunks</span><span class="t-val" id="t-items">0 / 0 / 25</span></div>
       </div>
-
-      <div style="font-size:10px; color:#94a3b8; font-weight:700; margin-top:2px;">STRESS TEST & SPAWNERS:</div>
+      <div style="font-size:10px;color:#94a3b8;font-weight:700;margin-top:2px;">STRESS TEST &amp; SPAWNERS:</div>
       <div class="row">
         <button id="drop-1">+1 Sword [G]</button>
         <button class="stress" id="drop-100">+100 Items</button>
@@ -124,24 +84,25 @@
         <button id="npc-50">+50 NPCs</button>
         <button class="stress" id="npc-250">+250 NPCs</button>
         <button class="stress" id="npc-1000">+1,000 Army</button>
-        <button id="btn-dragon" style="background:#4c1d95; border-color:#a78bfa;">🐉 +1 Dragon</button>
+        <button id="btn-dragon" style="background:#4c1d95;border-color:#a78bfa;">🐉 +Dragon</button>
       </div>
       <div class="row">
         <button id="btn-tp">✈️ Jump +2,500m</button>
         <button id="btn-clear">🧹 Reset</button>
-        <button id="btn-eco" class="active">⚡ Eco Guard: ON</button>
+        <button id="btn-eco" class="active">⚡ Eco: ON</button>
       </div>
     </div>
 
     <div id="bottom-bar" class="card">
-      <span><span class="kbd">WASD</span> Explore Open World</span>
-      <span><span class="kbd">Shift</span> Sprint</span>
-      <span><span class="kbd">Space/Click</span> Slash</span>
-      <span><span class="kbd">G</span> Toss Sword</span>
-      <span><span class="kbd">Scroll</span> Zoom</span>
+      <span><span class="kbd">WASD</span>Move</span>
+      <span><span class="kbd">Shift</span>Sprint</span>
+      <span><span class="kbd">Space</span>Slash</span>
+      <span><span class="kbd">G</span>Toss</span>
+      <span><span class="kbd">Q/E</span>Rotate Cam</span>
+      <span><span class="kbd">Scroll</span>Zoom</span>
     </div>
 
-    <div id="loading-banner" class="card">Booting sim_core.wasm & Realistic Quaternius Assets...</div>
+    <div id="loading-banner" class="card">⚔️ Booting Realms of Will — loading warriors, castles &amp; dragons...</div>
   </div>
 
   <script type="module">
@@ -150,66 +111,86 @@
     import { clone as cloneSkinned } from './libs/three/utils/SkeletonUtils.js';
 
     // =========================================================================
-    // 1. BOOT REAL WEBASSEMBLY ENGINE (sim_core.wasm)
+    // 1. WASM SIM ENGINE
     // =========================================================================
     const MAX_ITEMS = 5000;
-    const MAX_NPCS = 2500;
+    const MAX_NPCS  = 2500;
 
     const wasmResp = await fetch('sim_core.wasm');
     const { instance: wasmInst } = await WebAssembly.instantiate(await wasmResp.arrayBuffer());
     const wasm = wasmInst.exports;
-    const mem = wasm.memory.buffer;
+    const mem  = wasm.memory.buffer;
 
-    const itemX = new Float32Array(mem, 0x00000, MAX_ITEMS);
-    const itemY = new Float32Array(mem, 0x05000, MAX_ITEMS);
-    const itemZ = new Float32Array(mem, 0x0A000, MAX_ITEMS);
-    const itemVX = new Float32Array(mem, 0x0F000, MAX_ITEMS);
-    const itemVY = new Float32Array(mem, 0x14000, MAX_ITEMS);
-    const itemVZ = new Float32Array(mem, 0x19000, MAX_ITEMS);
-    const itemRot = new Float32Array(mem, 0x1E000, MAX_ITEMS);
-    const itemType = new Int32Array(mem, 0x23000, MAX_ITEMS);
+    const itemX    = new Float32Array(mem, 0x00000, MAX_ITEMS);
+    const itemY    = new Float32Array(mem, 0x05000, MAX_ITEMS);
+    const itemZ    = new Float32Array(mem, 0x0A000, MAX_ITEMS);
+    const itemVX   = new Float32Array(mem, 0x0F000, MAX_ITEMS);
+    const itemVY   = new Float32Array(mem, 0x14000, MAX_ITEMS);
+    const itemVZ   = new Float32Array(mem, 0x19000, MAX_ITEMS);
+    const itemRot  = new Float32Array(mem, 0x1E000, MAX_ITEMS);
+    const itemType = new Int32Array  (mem, 0x23000, MAX_ITEMS);
 
-    const npcX = new Float32Array(mem, 0x28000, MAX_NPCS);
-    const npcY = new Float32Array(mem, 0x2B000, MAX_NPCS);
-    const npcZ = new Float32Array(mem, 0x2E000, MAX_NPCS);
-    const npcVX = new Float32Array(mem, 0x31000, MAX_NPCS);
-    const npcVZ = new Float32Array(mem, 0x34000, MAX_NPCS);
-    const npcTX = new Float32Array(mem, 0x37000, MAX_NPCS);
-    const npcTZ = new Float32Array(mem, 0x3A000, MAX_NPCS);
-    const npcSpeed = new Float32Array(mem, 0x3D000, MAX_NPCS);
-    const npcKind = new Int32Array(mem, 0x40000, MAX_NPCS);
+    const npcX    = new Float32Array(mem, 0x28000, MAX_NPCS);
+    const npcY    = new Float32Array(mem, 0x2B000, MAX_NPCS);
+    const npcZ    = new Float32Array(mem, 0x2E000, MAX_NPCS);
+    const npcVX   = new Float32Array(mem, 0x31000, MAX_NPCS);
+    const npcVZ   = new Float32Array(mem, 0x34000, MAX_NPCS);
+    const npcTX   = new Float32Array(mem, 0x37000, MAX_NPCS);
+    const npcTZ   = new Float32Array(mem, 0x3A000, MAX_NPCS);
+    const npcSpeed= new Float32Array(mem, 0x3D000, MAX_NPCS);
+    const npcKind = new Int32Array  (mem, 0x40000, MAX_NPCS);
 
-    let activeItems = 0;
-    let activeNpcs = 0;
+    let activeItems = 0, activeNpcs = 0;
 
     // =========================================================================
-    // 2. THREE.JS RENDERER & ISOMETRIC CAMERA
+    // 2. RENDERER — PERSPECTIVE CAMERA FOR EPIC DEPTH
     // =========================================================================
-    const canvas = document.getElementById('game-canvas');
-    let ecoGuard = true;
-    const LOD0_POOL_MAX = 40;
-    let maxSkeletalLOD = LOD0_POOL_MAX;
+    const canvas  = document.getElementById('game-canvas');
+    let ecoGuard  = true;
+    const LOD0_MAX = 40;
+    let maxLod0    = LOD0_MAX;
 
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.shadowMap.enabled = false;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.setSize(window.innerWidth, window.innerHeight, false);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0b1626);
-    scene.fog = new THREE.Fog(0x0b1626, 60, 115);
+    scene.fog = new THREE.Fog(0x87ceeb, 55, 130);
 
-    let frustumSize = 24;
-    const camera = new THREE.OrthographicCamera(-10, 10, 10, -10, 0.1, 260);
-    const CAM_YAWS = [Math.PI * 0.25, Math.PI * 0.75, Math.PI * 1.25, Math.PI * 1.75];
+    // Sky gradient background
+    const skyCanvas = document.createElement('canvas');
+    skyCanvas.width = 2; skyCanvas.height = 128;
+    const skyCtx = skyCanvas.getContext('2d');
+    const skyGrad = skyCtx.createLinearGradient(0,0,0,128);
+    skyGrad.addColorStop(0.0, '#0a1628');
+    skyGrad.addColorStop(0.3, '#1a3a6e');
+    skyGrad.addColorStop(0.65, '#5a9fd4');
+    skyGrad.addColorStop(1.0,  '#87ceeb');
+    skyCtx.fillStyle = skyGrad;
+    skyCtx.fillRect(0,0,2,128);
+    const skyTex = new THREE.CanvasTexture(skyCanvas);
+    scene.background = skyTex;
+
+    // Orthographic isometric camera (true isometric feel)
+    let frustumSize = 28;
+    const camAspect = () => window.innerWidth / window.innerHeight;
+    const camera = new THREE.OrthographicCamera(
+      -frustumSize * camAspect() / 2, frustumSize * camAspect() / 2,
+      frustumSize / 2, -frustumSize / 2, 0.1, 300
+    );
+
+    const CAM_YAWS = [Math.PI*0.25, Math.PI*0.75, Math.PI*1.25, Math.PI*1.75];
     let camAngleIdx = 0;
 
     function updateProjection() {
       const a = window.innerWidth / window.innerHeight;
-      camera.left = (-frustumSize * a) / 2;
-      camera.right = (frustumSize * a) / 2;
-      camera.top = frustumSize / 2;
+      camera.left   = (-frustumSize * a) / 2;
+      camera.right  = ( frustumSize * a) / 2;
+      camera.top    =   frustumSize / 2;
       camera.bottom = -frustumSize / 2;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight, false);
@@ -217,58 +198,56 @@
     window.addEventListener('resize', updateProjection);
     updateProjection();
 
-    scene.add(new THREE.HemisphereLight(0xdbeafe, 0x1f2937, 1.45));
-    const sun = new THREE.DirectionalLight(0xfff1d6, 1.85);
-    sun.position.set(28, 42, 20);
+    // Rich lighting
+    scene.add(new THREE.HemisphereLight(0xdbeafe, 0x2d4a1e, 1.3));
+    const sun = new THREE.DirectionalLight(0xfff4d6, 2.2);
+    sun.position.set(40, 60, 25);
     scene.add(sun);
+    const fill = new THREE.DirectionalLight(0x8ab4f8, 0.4);
+    fill.position.set(-30, 20, -10);
+    scene.add(fill);
 
     const loader = new GLTFLoader();
 
     // =========================================================================
-    // 3. GPU INSTANCED ASSET POOLS (100% Cohesive Quaternius Realistic Pack)
+    // 3. GPU INSTANCED POOLS
     // =========================================================================
     const pools = {};
 
-    function normalizeTransform(root, targetHeight) {
+    function normalizeTransform(root, targetH) {
       root.updateMatrixWorld(true);
       const box = new THREE.Box3().setFromObject(root);
-      const size = new THREE.Vector3();
-      box.getSize(size);
-      const scale = targetHeight / Math.max(size.y, 0.001);
-      root.scale.multiplyScalar(scale);
+      const sz  = new THREE.Vector3(); box.getSize(sz);
+      root.scale.multiplyScalar(targetH / Math.max(sz.y, 0.001));
       root.updateMatrixWorld(true);
-      const box2 = new THREE.Box3().setFromObject(root);
-      const center = new THREE.Vector3();
-      box2.getCenter(center);
-      root.position.set(-center.x, -box2.min.y, -center.z);
+      const b2 = new THREE.Box3().setFromObject(root);
+      const c  = new THREE.Vector3(); b2.getCenter(c);
+      root.position.set(-c.x, -b2.min.y, -c.z);
       root.updateMatrixWorld(true);
     }
 
-    async function createPool(name, url, maxCount, targetHeight, centerOrigin = false) {
-      const gltf = await loader.loadAsync(url);
+    async function createPool(name, url, maxCount, targetH, center=false) {
+      let gltf;
+      try { gltf = await loader.loadAsync(url); }
+      catch(e) { console.warn('Pool load failed:', name, url, e); return; }
       const root = gltf.scene;
-      if (centerOrigin) {
+      if (center) {
         root.updateMatrixWorld(true);
         const box = new THREE.Box3().setFromObject(root);
-        const size = new THREE.Vector3();
-        box.getSize(size);
-        root.scale.multiplyScalar(targetHeight / Math.max(size.x, size.y, size.z, 0.001));
+        const sz  = new THREE.Vector3(); box.getSize(sz);
+        root.scale.multiplyScalar(targetH / Math.max(sz.x,sz.y,sz.z,0.001));
         root.updateMatrixWorld(true);
         const b2 = new THREE.Box3().setFromObject(root);
-        const c = new THREE.Vector3();
-        b2.getCenter(c);
-        root.position.sub(c);
-        root.updateMatrixWorld(true);
+        const c  = new THREE.Vector3(); b2.getCenter(c);
+        root.position.sub(c); root.updateMatrixWorld(true);
       } else {
-        normalizeTransform(root, targetHeight);
+        normalizeTransform(root, targetH);
       }
-
       const meshes = [];
       root.traverse(o => {
         if (o.isMesh) {
           const inst = new THREE.InstancedMesh(o.geometry, o.material, maxCount);
-          inst.count = 0;
-          inst.frustumCulled = false;
+          inst.count = 0; inst.frustumCulled = false;
           scene.add(inst);
           meshes.push({ inst, localMatrix: o.matrixWorld.clone() });
         }
@@ -277,774 +256,714 @@
     }
 
     function pushPoolMatrices(name, list) {
-      const p = pools[name];
-      if (!p) return;
+      const p = pools[name]; if (!p) return;
       const n = Math.min(list.length, p.maxCount);
       const tmp = new THREE.Matrix4();
       p.meshes.forEach(part => {
-        for (let i = 0; i < n; i++) {
-          tmp.multiplyMatrices(list[i], part.localMatrix);
-          part.inst.setMatrixAt(i, tmp);
-        }
-        part.inst.count = n;
-        part.inst.instanceMatrix.needsUpdate = true;
+        for (let i=0;i<n;i++) { tmp.multiplyMatrices(list[i], part.localMatrix); part.inst.setMatrixAt(i,tmp); }
+        part.inst.count = n; part.inst.instanceMatrix.needsUpdate = true;
       });
     }
 
-    // Continuous Shimmering Water Plane across the world horizon
-    const oceanGeo = new THREE.PlaneGeometry(240, 240);
-    oceanGeo.rotateX(-Math.PI / 2);
-    const oceanMesh = new THREE.Mesh(
-      oceanGeo,
-      new THREE.MeshLambertMaterial({ color: 0x0e7490, transparent: true, opacity: 0.84 })
+    // =========================================================================
+    // 4. OCEAN + WATERFALLS
+    // =========================================================================
+    const oceanGeo = new THREE.PlaneGeometry(300, 300);
+    oceanGeo.rotateX(-Math.PI/2);
+    const oceanMesh = new THREE.Mesh(oceanGeo,
+      new THREE.MeshLambertMaterial({ color: 0x0e7490, transparent: true, opacity: 0.82 })
     );
-    oceanMesh.position.y = 0.06;
-    scene.add(oceanMesh);
+    oceanMesh.position.y = 0.06; scene.add(oceanMesh);
 
-    // Animated 3D Waterfalls & Foam Splash
-    const WATERFALL_MAX = 256;
-    const waterfallInst = new THREE.InstancedMesh(
-      new THREE.BoxGeometry(2.2, 1.0, 0.65),
-      new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.78 }),
+    const WATERFALL_MAX = 192;
+    const wfInst = new THREE.InstancedMesh(
+      new THREE.BoxGeometry(2.0,1.0,0.6),
+      new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.76 }),
       WATERFALL_MAX
     );
-    waterfallInst.count = 0; waterfallInst.frustumCulled = false;
-    scene.add(waterfallInst);
-
+    wfInst.count=0; wfInst.frustumCulled=false; scene.add(wfInst);
     const foamInst = new THREE.InstancedMesh(
-      new THREE.DodecahedronGeometry(0.45, 0),
-      new THREE.MeshBasicMaterial({ color: 0xe0f2fe, transparent: true, opacity: 0.88 }),
-      WATERFALL_MAX * 3
+      new THREE.DodecahedronGeometry(0.4,0),
+      new THREE.MeshBasicMaterial({ color: 0xe0f2fe, transparent: true, opacity: 0.86 }),
+      WATERFALL_MAX*3
     );
-    foamInst.count = 0; foamInst.frustumCulled = false;
-    scene.add(foamInst);
+    foamInst.count=0; foamInst.frustumCulled=false; scene.add(foamInst);
     let activeWaterfalls = [];
 
     // =========================================================================
-    // 4. CONTINUOUS SMOOTH 3D HEIGHTFIELD TERRAIN + SQA LANDMARK CHUNK STREAMING
+    // 5. MULTI-OCTAVE TERRAIN with BIOME VERTEX COLORS
     // =========================================================================
-    const CHUNK_SIZE = 32;
-    const CHUNK_SEGS = 16; // 16x16 smooth continuous terrain mesh per chunk!
-    const CHUNK_RADIUS = 2; // 5x5 = 25 active chunks (160m x 160m)
+    const CHUNK_SIZE   = 36;
+    const CHUNK_SEGS   = 20;   // 20×20 = smooth rolling hills
+    const CHUNK_RADIUS = 2;    // 5×5 = 25 chunks
     const activeChunks = new Map();
     const terrainGroup = new THREE.Group();
     scene.add(terrainGroup);
     const terrainMat = new THREE.MeshLambertMaterial({ vertexColors: true });
     let lastChunkKey = '';
 
-    function detRand(x, z, salt = 0) {
-      let h = Math.imul(x | 0, 374761393) ^ Math.imul(z | 0, 668265263) ^ Math.imul(salt | 0, 1442695041);
-      h = Math.imul(h ^ (h >>> 13), 1274126177);
-      return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+    function detRand(x,z,salt=0) {
+      let h = Math.imul(x|0, 374761393) ^ Math.imul(z|0, 668265263) ^ Math.imul(salt|0, 1442695041);
+      h = Math.imul(h^(h>>>13), 1274126177);
+      return ((h^(h>>>16))>>>0)/4294967295;
     }
 
-    function buildSmoothTerrainMesh(cx, cz) {
-      const bx = cx * CHUNK_SIZE;
-      const bz = cz * CHUNK_SIZE;
-      const geo = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, CHUNK_SEGS, CHUNK_SEGS);
-      geo.rotateX(-Math.PI / 2);
+    // Extra JS-side noise for richer biome coloring (WASM handles height)
+    function jsNoise(x,z,f=1) {
+      return (Math.sin(x*f*0.11)*Math.cos(z*f*0.13) + Math.sin(x*f*0.07+z*f*0.09)*0.5)*0.667;
+    }
 
+    function buildTerrainMesh(cx,cz) {
+      const bx = cx*CHUNK_SIZE, bz = cz*CHUNK_SIZE;
+      const geo = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, CHUNK_SEGS, CHUNK_SEGS);
+      geo.rotateX(-Math.PI/2);
       const pos = geo.attributes.position;
-      const colors = new Float32Array(pos.count * 3);
+      const colors = new Float32Array(pos.count*3);
       const col = new THREE.Color();
 
-      for (let i = 0; i < pos.count; i++) {
-        const lx = pos.getX(i) + CHUNK_SIZE * 0.5;
-        const lz = pos.getZ(i) + CHUNK_SIZE * 0.5;
-        const wx = bx + lx;
-        const wz = bz + lz;
-        const h = wasm.terrain_height(wx, wz);
-        pos.setY(i, h);
+      for (let i=0;i<pos.count;i++) {
+        const lx = pos.getX(i) + CHUNK_SIZE*0.5;
+        const lz = pos.getZ(i) + CHUNK_SIZE*0.5;
+        const wx = bx+lx, wz = bz+lz;
+        const h = wasm.terrain_height(wx,wz);
+        pos.setY(i,h);
 
-        // Micro noise variation for organic grass/dirt/cliff shading
-        const grain = (detRand(Math.floor(wx), Math.floor(wz), 11) - 0.5) * 0.08;
-        if (h < -0.05) {
-          col.setRGB(0.09, 0.25, 0.28); // Deep riverbed
-        } else if (h < 0.28) {
-          col.setRGB(0.58 + grain, 0.51 + grain, 0.34); // Sandy riverbank
-        } else if (h < 2.3) {
-          const lush = Math.min(1, (h - 0.28) / 2.0);
-          col.setRGB(0.14 + lush * 0.06 + grain, 0.42 + lush * 0.1 + grain, 0.19); // Meadow grass
-        } else if (h < 4.1) {
-          col.setRGB(0.32 + grain, 0.35 + grain, 0.39); // Granite cliffs
+        // Biome color blending — natural, painterly
+        const grain = (detRand(Math.floor(wx*0.5),Math.floor(wz*0.5),3)-0.5)*0.06;
+        const moisture = jsNoise(wx,wz,1)*0.5+0.5;
+
+        if (h < -0.08) {
+          // Deep river/lake bed — dark muddy blue
+          col.setRGB(0.08+grain,0.20+grain,0.26);
+        } else if (h < 0.3) {
+          // Sandy riverbank / beach
+          col.setRGB(0.76+grain,0.68+grain,0.44+grain);
+        } else if (h < 1.6) {
+          // Lush meadow: brighter, saturated green with moisture variation
+          const lush = Math.min(1,(h-0.3)/1.3);
+          const r = 0.13 + lush*0.05 + grain - moisture*0.05;
+          const g = 0.48 + lush*0.14 + grain + moisture*0.08;
+          const b2 = 0.14 + lush*0.03;
+          col.setRGB(Math.max(0.05,r), Math.max(0.2,g), Math.max(0.05,b2));
+        } else if (h < 2.8) {
+          // Dark forest / mid-slope
+          const t = (h-1.6)/1.2;
+          col.setRGB(0.18+t*0.12+grain, 0.35+t*0.04+grain, 0.14+grain);
+        } else if (h < 4.5) {
+          // Rocky cliff — warm grey-brown
+          col.setRGB(0.44+grain, 0.38+grain, 0.30+grain);
         } else {
-          col.setRGB(0.84 + grain * 0.5, 0.88 + grain * 0.5, 0.93); // Alpine snow
+          // Alpine snow — slightly blue-white
+          col.setRGB(0.86+grain*0.3, 0.90+grain*0.3, 0.97);
         }
-        colors[i * 3] = col.r;
-        colors[i * 3 + 1] = col.g;
-        colors[i * 3 + 2] = col.b;
+        colors[i*3]=col.r; colors[i*3+1]=col.g; colors[i*3+2]=col.b;
       }
 
-      geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(colors,3));
       geo.computeVertexNormals();
-
       const mesh = new THREE.Mesh(geo, terrainMat);
-      mesh.position.set(bx + CHUNK_SIZE * 0.5, 0, bz + CHUNK_SIZE * 0.5);
+      mesh.position.set(bx+CHUNK_SIZE*0.5, 0, bz+CHUNK_SIZE*0.5);
       terrainGroup.add(mesh);
       return mesh;
     }
 
-    function solveSettlementSiteSQA(cx, cz) {
-      const bx = cx * CHUNK_SIZE;
-      const bz = cz * CHUNK_SIZE;
-      let bestX = bx + 16, bestZ = bz + 16, bestE = 1e9;
-      let temp = 2.0;
-
-      for (let step = 0; step < 10; step++) {
-        const candX = bx + 6 + detRand(cx * 31 + step, cz, 3) * 20;
-        const candZ = bz + 6 + detRand(cx, cz * 31 + step, 4) * 20;
-        const h = wasm.terrain_height(candX, candZ);
-        const slope = Math.abs(wasm.terrain_height(candX + 3, candZ) - h) + Math.abs(wasm.terrain_height(candX, candZ + 3) - h);
-        const waterPen = h < 0.3 ? 25.0 : 0.0;
-        const highPen = h > 2.6 ? (h - 2.6) * 6.0 : 0.0;
-        const energy = slope * 4.5 + Math.abs(h - 1.1) + waterPen + highPen;
-        if (energy < bestE || Math.exp((bestE - energy) / temp) > detRand(step, cx, cz)) {
-          bestE = energy; bestX = candX; bestZ = candZ;
-        }
-        temp *= 0.78;
+    // SQA settlement finder
+    function sqaSite(cx,cz) {
+      const bx=cx*CHUNK_SIZE, bz=cz*CHUNK_SIZE;
+      let bx_=bx+18,bz_=bz+18,be=1e9, temp=2.0;
+      for (let s=0;s<10;s++) {
+        const cx2=bx+6+detRand(cx*31+s,cz,3)*24;
+        const cz2=bz+6+detRand(cx,cz*31+s,4)*24;
+        const h=wasm.terrain_height(cx2,cz2);
+        const slope=Math.abs(wasm.terrain_height(cx2+3,cz2)-h)+Math.abs(wasm.terrain_height(cx2,cz2+3)-h);
+        const e=slope*4+Math.abs(h-1.1)+(h<0.3?25:0)+(h>2.8?(h-2.8)*6:0);
+        if (e<be||Math.exp((be-e)/temp)>detRand(s,cx,cz)) {be=e;bx_=cx2;bz_=cz2;}
+        temp*=0.78;
       }
-      return { x: bestX, z: bestZ, h: wasm.terrain_height(bestX, bestZ), energy: bestE };
+      return {x:bx_,z:bz_,h:wasm.terrain_height(bx_,bz_),energy:be};
     }
 
-    function generateChunkData(cx, cz) {
-      const bx = cx * CHUNK_SIZE;
-      const bz = cz * CHUNK_SIZE;
-      const terrainMesh = buildSmoothTerrainMesh(cx, cz);
-
+    function generateChunk(cx,cz) {
+      const bx=cx*CHUNK_SIZE, bz=cz*CHUNK_SIZE;
+      const terrainMesh = buildTerrainMesh(cx,cz);
       const data = {
         terrainMesh,
-        mountains: [], trees: [], rocks: [], castles: [], townCenters: [],
-        houses: [], inns: [], blacksmiths: [], windmills: [], walls: [], towers: [],
-        gold: [], waterfalls: [], landmark: 'Wilderness'
+        mountains:[],trees:[],rocks:[],
+        castles:[],townCenters:[],
+        houses:[],inns:[],blacksmiths:[],windmills:[],
+        walls:[],towers:[],gold:[],
+        waterfalls:[],landmark:'Wilderness'
       };
-
-      const tmpQ = new THREE.Quaternion();
-      const tmpS = new THREE.Vector3();
-      const makeM = (x, y, z, ry = 0, s = 1) => {
-        const m = new THREE.Matrix4();
-        tmpQ.setFromEuler(new THREE.Euler(0, ry, 0));
-        tmpS.set(s, s, s);
-        m.compose(new THREE.Vector3(x, y, z), tmpQ, tmpS);
+      const tmpQ=new THREE.Quaternion(), tmpS=new THREE.Vector3();
+      const makeM=(x,y,z,ry=0,s=1)=>{
+        const m=new THREE.Matrix4();
+        tmpQ.setFromEuler(new THREE.Euler(0,ry,0));
+        tmpS.set(s,s,s);
+        m.compose(new THREE.Vector3(x,y,z),tmpQ,tmpS);
         return m;
       };
 
-      // Nature, Cliffs, Waterfalls & Ore Veins
-      for (let gz = 0; gz < 8; gz++) {
-        for (let gx = 0; gx < 8; gx++) {
-          const wx = bx + gx * 4 + 2;
-          const wz = bz + gz * 4 + 2;
-          const h = wasm.terrain_height(wx, wz);
-
-          if (h > 2.4) {
-            for (const [ox, oz] of [[4,0],[-4,0],[0,4],[0,-4]]) {
-              if (wasm.terrain_height(wx + ox, wz + oz) < 0.08) {
-                data.waterfalls.push({
-                  x: wx + ox * 0.5, topY: h, botY: 0.06, z: wz + oz * 0.5, ry: Math.atan2(ox, oz)
-                });
-                break;
-              }
+      // Nature — trees, rocks, mountains, waterfalls
+      for (let gz=0;gz<9;gz++) for (let gx=0;gx<9;gx++) {
+        const wx=bx+gx*4+2, wz=bz+gz*4+2;
+        const h=wasm.terrain_height(wx,wz);
+        // Waterfalls at cliff→water edges
+        if (h>2.6) {
+          for (const [ox,oz] of [[4,0],[-4,0],[0,4],[0,-4]]) {
+            if (wasm.terrain_height(wx+ox,wz+oz)<0.08) {
+              data.waterfalls.push({x:wx+ox*0.5,topY:h,botY:0.06,z:wz+oz*0.5,ry:Math.atan2(ox,oz)});
+              break;
             }
           }
-
-          const r = detRand(wx, wz, 77);
-          if (h > 4.2 && r < 0.16) {
-            data.mountains.push(makeM(wx, h - 0.5, wz, r * 6.28, 1.1 + r * 0.5));
-          } else if (h > 0.35 && h < 2.3 && r < 0.15) {
-            data.trees.push(makeM(wx, h - 0.1, wz, r * 6.28, 0.9 + r * 0.4));
-          } else if (h > 2.3 && h < 4.2 && r < 0.12) {
-            data.rocks.push(makeM(wx, h - 0.15, wz, r * 6.28, 0.9 + r * 0.4));
-          } else if (h > 1.8 && r > 0.95) {
-            data.gold.push(makeM(wx, h - 0.05, wz, r * 6.28, 1.0));
-          }
         }
+        const r=detRand(wx,wz,77);
+        if      (h>4.5&&r<0.18) data.mountains.push(makeM(wx,h-0.5,wz,r*6.28,1.0+r*0.6));
+        else if (h>0.35&&h<2.8&&r<0.18) data.trees.push(makeM(wx,h-0.1,wz,r*6.28,0.85+r*0.45));
+        else if (h>2.8&&h<4.5&&r<0.14) data.rocks.push(makeM(wx,h-0.2,wz,r*6.28,0.9+r*0.4));
+        else if (h>1.6&&r>0.96) data.gold.push(makeM(wx,h-0.05,wz,r*6.28,1.0));
       }
 
-      // Cohesive Quaternius Medieval Castles & Villages
-      const roll = detRand(cx, cz, 999);
-      const site = solveSettlementSiteSQA(cx, cz);
-      if (site.energy < 5.0) {
-        if (roll < 0.28 || (cx === 1 && cz === 1)) {
-          data.landmark = 'Grand Citadel';
-          const { x, z } = site;
-          data.castles.push(makeM(x, wasm.terrain_height(x, z) - 0.2, z, 0, 1.0));
-          data.towers.push(makeM(x - 7, wasm.terrain_height(x - 7, z - 7) - 0.2, z - 7));
-          data.towers.push(makeM(x + 7, wasm.terrain_height(x + 7, z - 7) - 0.2, z - 7));
-          data.towers.push(makeM(x - 7, wasm.terrain_height(x - 7, z + 7) - 0.2, z + 7));
-          data.towers.push(makeM(x + 7, wasm.terrain_height(x + 7, z + 7) - 0.2, z + 7));
-          for (let w = -4; w <= 4; w += 2.5) {
-            data.walls.push(makeM(x + w, wasm.terrain_height(x + w, z - 7) - 0.2, z - 7, 0));
-            if (Math.abs(w) >= 2.2) data.walls.push(makeM(x + w, wasm.terrain_height(x + w, z + 7) - 0.2, z + 7, 0));
-            data.walls.push(makeM(x - 7, wasm.terrain_height(x - 7, z + w) - 0.2, z + w, Math.PI / 2));
-            data.walls.push(makeM(x + 7, wasm.terrain_height(x + 7, z + w) - 0.2, z + w, Math.PI / 2));
+      // Settlements
+      const roll=detRand(cx,cz,999);
+      const site=sqaSite(cx,cz);
+      if (site.energy<5.5) {
+        const {x,z}=site;
+        const th=h=>wasm.terrain_height(h[0],h[1])-0.2;
+        if (roll<0.28||(cx===1&&cz===1)) {
+          data.landmark='Grand Citadel';
+          data.castles.push(makeM(x,wasm.terrain_height(x,z)-0.2,z,0,1.0));
+          [[-7,-7],[7,-7],[-7,7],[7,7]].forEach(([dx,dz])=>
+            data.towers.push(makeM(x+dx,wasm.terrain_height(x+dx,z+dz)-0.2,z+dz)));
+          for (let w=-4;w<=4;w+=2.5) {
+            data.walls.push(makeM(x+w,wasm.terrain_height(x+w,z-7)-0.2,z-7,0));
+            if(Math.abs(w)>=2.2) data.walls.push(makeM(x+w,wasm.terrain_height(x+w,z+7)-0.2,z+7,0));
+            data.walls.push(makeM(x-7,wasm.terrain_height(x-7,z+w)-0.2,z+w,Math.PI/2));
+            data.walls.push(makeM(x+7,wasm.terrain_height(x+7,z+w)-0.2,z+w,Math.PI/2));
           }
-        } else if (roll < 0.68 || (cx === 0 && cz === 1)) {
-          data.landmark = 'Medieval Village';
-          const { x, z } = site;
-          data.townCenters.push(makeM(x, wasm.terrain_height(x, z) - 0.15, z, 0.15));
-          data.inns.push(makeM(x - 5.5, wasm.terrain_height(x - 5.5, z + 3) - 0.15, z + 3, 0.6));
-          data.houses.push(makeM(x + 5.5, wasm.terrain_height(x + 5.5, z + 2.5) - 0.15, z + 2.5, -0.4));
-          data.blacksmiths.push(makeM(x - 4.5, wasm.terrain_height(x - 4.5, z - 4.5) - 0.15, z - 4.5, 1.1));
-          data.windmills.push(makeM(x + 5.5, wasm.terrain_height(x + 5.5, z - 4.5) - 0.15, z - 4.5, -0.3));
+        } else if (roll<0.70||(cx===0&&cz===1)) {
+          data.landmark='Medieval Village';
+          data.townCenters.push(makeM(x,wasm.terrain_height(x,z)-0.15,z,0.15));
+          data.inns.push(makeM(x-6,wasm.terrain_height(x-6,z+3)-0.15,z+3,0.6));
+          data.houses.push(makeM(x+6,wasm.terrain_height(x+6,z+2.5)-0.15,z+2.5,-0.4));
+          data.blacksmiths.push(makeM(x-5,wasm.terrain_height(x-5,z-5)-0.15,z-5,1.1));
+          data.windmills.push(makeM(x+6,wasm.terrain_height(x+6,z-5)-0.15,z-5,-0.3));
+          // Extra houses around village
+          for (let i=0;i<4;i++) {
+            const hx=x+(Math.cos(i*1.57)*9), hz=z+(Math.sin(i*1.57)*9);
+            data.houses.push(makeM(hx,wasm.terrain_height(hx,hz)-0.15,hz,i*1.57));
+          }
         }
       }
       return data;
     }
 
-    function rebuildChunkBatches() {
-      const lists = {
-        mountains: [], trees: [], rocks: [], castles: [], townCenters: [],
-        houses: [], inns: [], blacksmiths: [], windmills: [], walls: [], towers: [], gold: []
-      };
-      activeWaterfalls = [];
-      activeChunks.forEach(chunk => {
-        Object.keys(lists).forEach(k => chunk[k].forEach(m => lists[k].push(m)));
-        chunk.waterfalls.forEach(wf => activeWaterfalls.push(wf));
+    function rebuildBatches() {
+      const lists={mountains:[],trees:[],rocks:[],castles:[],townCenters:[],
+                   houses:[],inns:[],blacksmiths:[],windmills:[],walls:[],towers:[],gold:[]};
+      activeWaterfalls=[];
+      activeChunks.forEach(c=>{
+        Object.keys(lists).forEach(k=>c[k].forEach(m=>lists[k].push(m)));
+        c.waterfalls.forEach(wf=>activeWaterfalls.push(wf));
       });
-      Object.entries(lists).forEach(([k, arr]) => pushPoolMatrices(k, arr));
+      Object.entries(lists).forEach(([k,arr])=>pushPoolMatrices(k,arr));
     }
 
-    function syncChunks(px, pz) {
-      const pcx = Math.floor(px / CHUNK_SIZE);
-      const pcz = Math.floor(pz / CHUNK_SIZE);
-      const key = `${pcx},${pcz}`;
-      if (key === lastChunkKey) return;
-      lastChunkKey = key;
-
-      const needed = new Set();
-      for (let dz = -CHUNK_RADIUS; dz <= CHUNK_RADIUS; dz++) {
-        for (let dx = -CHUNK_RADIUS; dx <= CHUNK_RADIUS; dx++) {
-          const ck = `${pcx + dx},${pcz + dz}`;
+    function syncChunks(px,pz) {
+      const pcx=Math.floor(px/CHUNK_SIZE), pcz=Math.floor(pz/CHUNK_SIZE);
+      const key=`${pcx},${pcz}`;
+      if (key===lastChunkKey) return;
+      lastChunkKey=key;
+      const needed=new Set();
+      for (let dz=-CHUNK_RADIUS;dz<=CHUNK_RADIUS;dz++) {
+        for (let dx=-CHUNK_RADIUS;dx<=CHUNK_RADIUS;dx++) {
+          const ck=`${pcx+dx},${pcz+dz}`;
           needed.add(ck);
-          if (!activeChunks.has(ck)) {
-            activeChunks.set(ck, generateChunkData(pcx + dx, pcz + dz));
-          }
+          if (!activeChunks.has(ck)) activeChunks.set(ck,generateChunk(pcx+dx,pcz+dz));
         }
       }
-      for (const [k, chunk] of activeChunks.entries()) {
+      for (const [k,c] of activeChunks.entries()) {
         if (!needed.has(k)) {
-          terrainGroup.remove(chunk.terrainMesh);
-          chunk.terrainMesh.geometry.dispose();
+          terrainGroup.remove(c.terrainMesh);
+          c.terrainMesh.geometry.dispose();
           activeChunks.delete(k);
         }
       }
-      rebuildChunkBatches();
-      const cur = activeChunks.get(key);
-      if (cur) document.getElementById('landmark-name').innerText = `Sector: ${cur.landmark}`;
+      rebuildBatches();
+      const cur=activeChunks.get(key);
+      if (cur) document.getElementById('landmark-name').innerText=`Sector: ${cur.landmark}`;
     }
 
     // =========================================================================
-    // 5. HEROES, POOLED SKELETAL NPCs (40), REAL 3D WARRIOR LOD1, & DRAGONS
+    // 6. HERO CHARACTERS
     // =========================================================================
-    function findBone(root, candidates) {
-      const wanted = candidates.map(c => c.replace(/[^a-z0-9]/gi, '').toLowerCase());
-      let found = null;
-      root.traverse(o => {
+    function findBone(root,candidates) {
+      const wanted=candidates.map(c=>c.replace(/[^a-z0-9]/gi,'').toLowerCase());
+      let found=null;
+      root.traverse(o=>{
         if (found) return;
-        const clean = (o.name || '').replace(/[^a-z0-9]/gi, '').toLowerCase();
-        if (wanted.includes(clean)) found = o;
+        const clean=(o.name||'').replace(/[^a-z0-9]/gi,'').toLowerCase();
+        if (wanted.includes(clean)) found=o;
       });
       return found;
     }
 
     const HERO_CONFIGS = {
-      king: {
-        url: 'assets_3d/poly_pizza/king__King__I1gTjmuK2m.glb', height: 2.35,
-        anims: { idle: 'CharacterArmature|Idle_Sword', walk: 'CharacterArmature|Walk', run: 'CharacterArmature|Run', attack: 'CharacterArmature|Sword_Slash' },
-        swordBones: ['Middle1R', 'WristR']
-      },
-      knight: {
-        url: 'assets_3d/quaternius/single_knight_pack/KnightCharacter.glb', height: 2.35,
-        anims: { idle: 'HumanArmature|Idle_swordRight', walk: 'HumanArmature|Walking', run: 'HumanArmature|Run_swordRight', attack: 'HumanArmature|Run_swordAttack' },
-        swordBones: ['MiddleHandR', 'WristR']
-      },
-      ranger: {
-        url: 'assets_3d/poly_pizza/warrior__Hooded_Adventurer__y9KWOVG21R.glb', height: 2.35,
-        anims: { idle: 'CharacterArmature|Idle_Sword', walk: 'CharacterArmature|Walk', run: 'CharacterArmature|Run', attack: 'CharacterArmature|Sword_Slash' }
-      }
+      king:   { url:'assets_3d/poly_pizza/king__King__I1gTjmuK2m.glb', h:2.35,
+                anims:{idle:'CharacterArmature|Idle_Sword',walk:'CharacterArmature|Walk',run:'CharacterArmature|Run',attack:'CharacterArmature|Sword_Slash'},
+                swordBones:['Middle1R','WristR'] },
+      knight: { url:'assets_3d/quaternius/single_knight_pack/KnightCharacter.glb', h:2.35,
+                anims:{idle:'HumanArmature|Idle_swordRight',walk:'HumanArmature|Walking',run:'HumanArmature|Run_swordRight',attack:'HumanArmature|Run_swordAttack'},
+                swordBones:['MiddleHandR','WristR'] },
+      ranger: { url:'assets_3d/poly_pizza/warrior__Hooded_Adventurer__y9KWOVG21R.glb', h:2.35,
+                anims:{idle:'CharacterArmature|Idle_Sword',walk:'CharacterArmature|Walk',run:'CharacterArmature|Run',attack:'CharacterArmature|Sword_Slash'} }
     };
 
-    let spawnX = 48, spawnZ = 48;
-    for (let d = 0; d < 60; d += 4) {
-      const h = wasm.terrain_height(48 + d, 48);
-      if (h > 0.35 && h < 2.2) { spawnX = 48 + d; break; }
+    // Find a good spawn on dry grassland
+    let spawnX=48, spawnZ=48;
+    for (let d=0;d<80;d+=4) {
+      const h=wasm.terrain_height(48+d,48);
+      if (h>0.4&&h<2.0) { spawnX=48+d; break; }
     }
-
-    const player = { x: spawnX, y: wasm.terrain_height(spawnX, spawnZ), z: spawnZ, yaw: 0, targetYaw: 0, speed: 9.5, attacking: 0, fire: false };
+    const player = { x:spawnX, y:wasm.terrain_height(spawnX,spawnZ), z:spawnZ,
+                     yaw:0, targetYaw:0, speed:9.5, attacking:0, fire:false };
     const playerGroup = new THREE.Group();
     scene.add(playerGroup);
 
-    let swordTpl = null;
-    const loadedHeroes = {};
-    let currentHero = null, currentAction = null, playerSwordMeshes = [];
+    let swordTpl=null, currentHero=null, currentAction=null, playerSwordMeshes=[];
+    const loadedHeroes={};
 
     function applyFireVisual() {
-      playerSwordMeshes.forEach(m => m.traverse(o => {
-        if (o.isMesh && o.material) {
-          if (!o.userData.orig) o.userData.orig = o.material;
-          if (player.fire) {
-            const fm = o.userData.orig.clone();
-            fm.emissive = new THREE.Color(0xf97316);
-            fm.emissiveIntensity = 1.7;
-            o.material = fm;
-          } else {
-            o.material = o.userData.orig;
-          }
+      playerSwordMeshes.forEach(m=>m.traverse(o=>{
+        if (o.isMesh&&o.material) {
+          if (!o.userData.orig) o.userData.orig=o.material;
+          o.material = player.fire ? Object.assign(o.userData.orig.clone(),
+            { emissive:new THREE.Color(0xf97316), emissiveIntensity:1.8 }) : o.userData.orig;
         }
       }));
     }
 
     async function switchHero(key) {
-      document.querySelectorAll('.hero-btn').forEach(b => b.classList.toggle('active', b.dataset.hero === key));
+      document.querySelectorAll('.hero-btn').forEach(b=>b.classList.toggle('active',b.dataset.hero===key));
       if (currentHero) playerGroup.remove(currentHero.model);
       if (!loadedHeroes[key]) {
-        const cfg = HERO_CONFIGS[key];
-        const gltf = await loader.loadAsync(cfg.url);
-        const model = gltf.scene;
-        normalizeTransform(model, cfg.height);
-        const wMeshes = [];
-        if (cfg.swordBones && swordTpl) {
-          const b = findBone(model, cfg.swordBones);
+        const cfg=HERO_CONFIGS[key];
+        const gltf=await loader.loadAsync(cfg.url);
+        const model=gltf.scene;
+        normalizeTransform(model,cfg.h);
+        const wMeshes=[];
+        if (cfg.swordBones&&swordTpl) {
+          const b=findBone(model,cfg.swordBones);
           if (b) {
             model.updateMatrixWorld(true);
-            const ws = new THREE.Vector3();
-            b.getWorldScale(ws);
-            const inv = 1 / Math.max((ws.x + ws.y + ws.z) / 3, 0.0001);
-            const sw = swordTpl.clone(true);
+            const ws=new THREE.Vector3(); b.getWorldScale(ws);
+            const inv=1/Math.max((ws.x+ws.y+ws.z)/3,0.0001);
+            const sw=swordTpl.clone(true);
             sw.scale.multiplyScalar(inv);
-            sw.rotation.set(0, 0, Math.PI * 0.5);
-            sw.position.set(0, 0.09 * inv, -0.025 * inv);
-            b.add(sw);
-            wMeshes.push(sw);
+            sw.rotation.set(0,0,Math.PI*0.5);
+            sw.position.set(0,0.09*inv,-0.025*inv);
+            b.add(sw); wMeshes.push(sw);
           }
         }
-        model.traverse(o => { if (o.isMesh && /sword/i.test(o.name)) wMeshes.push(o); });
-        const mixer = new THREE.AnimationMixer(model);
-        const actions = {};
-        for (const [k, nm] of Object.entries(cfg.anims)) {
-          const cl = gltf.animations.find(c => c.name === nm) || gltf.animations[0];
-          if (cl) actions[k] = mixer.clipAction(cl);
+        model.traverse(o=>{ if(o.isMesh&&/sword/i.test(o.name)) wMeshes.push(o); });
+        const mixer=new THREE.AnimationMixer(model);
+        const actions={};
+        for (const [k,nm] of Object.entries(cfg.anims)) {
+          const cl=gltf.animations.find(c=>c.name===nm)||gltf.animations[0];
+          if (cl) actions[k]=mixer.clipAction(cl);
         }
-        loadedHeroes[key] = { model, mixer, actions, wMeshes };
+        loadedHeroes[key]={model,mixer,actions,wMeshes};
       }
-      currentHero = loadedHeroes[key];
-      playerSwordMeshes = currentHero.wMeshes;
+      currentHero=loadedHeroes[key];
+      playerSwordMeshes=currentHero.wMeshes;
       applyFireVisual();
       playerGroup.add(currentHero.model);
-      currentAction = null;
-      playHeroAnim('idle');
+      currentAction=null; playHeroAnim('idle');
     }
 
     function playHeroAnim(name) {
-      if (!currentHero || !currentHero.actions[name]) return;
-      const next = currentHero.actions[name];
-      if (currentAction === next) return;
+      if (!currentHero||!currentHero.actions[name]) return;
+      const next=currentHero.actions[name];
+      if (currentAction===next) return;
       if (currentAction) currentAction.fadeOut(0.12);
       next.reset().fadeIn(0.12).play();
-      if (name === 'attack') { next.setLoop(THREE.LoopOnce); next.clampWhenFinished = true; }
-      else next.setLoop(THREE.LoopRepeat);
-      currentAction = next;
+      name==='attack' ? (next.setLoop(THREE.LoopOnce),next.clampWhenFinished=true) : next.setLoop(THREE.LoopRepeat);
+      currentAction=next;
     }
 
-    // LOD 0 Skeletal NPC Pool (40 Full Animated Characters!)
+    // =========================================================================
+    // 7. LOD-0 SKELETAL NPC POOL (40 animated characters)
+    // =========================================================================
     const lod0Pool = [];
-    async function buildNpcLodPool() {
+    async function buildNpcPool() {
       const templates = [
-        { url: 'assets_3d/quaternius/single_knight_pack/KnightCharacter.glb', h: 2.2, anim: 'HumanArmature|Walking' },
-        { url: 'assets_3d/poly_pizza/villager__Farmer__7pn3R6hPvE.glb', h: 2.2, anim: 'CharacterArmature|Walk' },
-        { url: 'assets_3d/poly_pizza/orc__Orc__5vO2YJsPEf.glb', h: 2.3, anim: 'CharacterArmature|Walk' },
-        { url: 'assets_3d/poly_pizza/warrior__Hooded_Adventurer__y9KWOVG21R.glb', h: 2.2, anim: 'CharacterArmature|Walk' },
-        { url: 'assets_3d/quaternius/animals_pack/Wolf.glb', h: 1.25, anim: 'AnimalArmature|Walk' },
+        { url:'assets_3d/quaternius/single_knight_pack/KnightCharacter.glb', h:2.2, anim:'HumanArmature|Walking' },
+        { url:'assets_3d/poly_pizza/villager__Farmer__7pn3R6hPvE.glb',       h:2.2, anim:'CharacterArmature|Walk' },
+        { url:'assets_3d/poly_pizza/orc__Orc__5vO2YJsPEf.glb',               h:2.3, anim:'CharacterArmature|Walk' },
+        { url:'assets_3d/poly_pizza/warrior__Hooded_Adventurer__y9KWOVG21R.glb', h:2.2, anim:'CharacterArmature|Walk' },
+        { url:'assets_3d/quaternius/animals_pack/Wolf.glb',                   h:1.25,anim:'AnimalArmature|Walk' },
       ];
-      const loadedTpls = await Promise.all(templates.map(async t => {
-        const g = await loader.loadAsync(t.url);
-        normalizeTransform(g.scene, t.h);
-        const clip = g.animations.find(c => c.name === t.anim) || g.animations[0];
-        return { scene: g.scene, clip };
+      const tpls = await Promise.all(templates.map(async t=>{
+        try {
+          const g=await loader.loadAsync(t.url);
+          normalizeTransform(g.scene,t.h);
+          const clip=g.animations.find(c=>c.name===t.anim)||g.animations[0];
+          return {scene:g.scene,clip};
+        } catch(e) { console.warn('NPC tpl load fail:',t.url,e); return null; }
       }));
-
-      for (let i = 0; i < LOD0_POOL_MAX; i++) {
-        const tpl = loadedTpls[i % loadedTpls.length];
-        const cloned = cloneSkinned(tpl.scene);
-        cloned.visible = false;
-        scene.add(cloned);
-        const mixer = new THREE.AnimationMixer(cloned);
-        if (tpl.clip) {
-          const act = mixer.clipAction(tpl.clip);
-          act.time = (i * 0.19) % tpl.clip.duration;
-          act.play();
-        }
-        lod0Pool.push({ mesh: cloned, mixer });
+      const validTpls = tpls.filter(Boolean);
+      if (!validTpls.length) return;
+      for (let i=0;i<LOD0_MAX;i++) {
+        const tpl=validTpls[i%validTpls.length];
+        const c=cloneSkinned(tpl.scene);
+        c.visible=false; scene.add(c);
+        const mx=new THREE.AnimationMixer(c);
+        if (tpl.clip) { const a=mx.clipAction(tpl.clip); a.time=(i*0.19)%tpl.clip.duration; a.play(); }
+        lod0Pool.push({mesh:c,mixer:mx});
       }
     }
 
-    // Animated 3D Flying Dragons Wing!
-    const dragons = [];
-    let dragonTpls = [];
-
+    // =========================================================================
+    // 8. DRAGONS
+    // =========================================================================
+    const dragons=[];
+    let dragonTpls=[];
     async function preloadDragons() {
-      const urls = [
-        { url: 'assets_3d/poly_pizza/dragon__Dragon__VBvzjFIYws.glb', h: 4.5, anim: /flying/i },
-        { url: 'assets_3d/poly_pizza/dragon__Dragon_Evolved__LlwD0QNUPj.glb', h: 4.2, anim: /fast_flying|flying/i }
+      const defs=[
+        {url:'assets_3d/poly_pizza/dragon__Dragon__VBvzjFIYws.glb',           h:4.5, anim:/flying/i},
+        {url:'assets_3d/poly_pizza/dragon__Dragon_Evolved__LlwD0QNUPj.glb',   h:4.2, anim:/fast_flying|flying/i}
       ];
-      dragonTpls = await Promise.all(urls.map(async d => {
-        const g = await loader.loadAsync(d.url);
-        normalizeTransform(g.scene, d.h);
-        const clip = g.animations.find(c => d.anim.test(c.name)) || g.animations[0];
-        return { scene: g.scene, clip };
+      dragonTpls=await Promise.all(defs.map(async d=>{
+        try {
+          const g=await loader.loadAsync(d.url);
+          normalizeTransform(g.scene,d.h);
+          const clip=g.animations.find(c=>d.anim.test(c.name))||g.animations[0];
+          return {scene:g.scene,clip};
+        } catch(e) { console.warn('Dragon load fail:',d.url,e); return null; }
       }));
+      dragonTpls=dragonTpls.filter(Boolean);
     }
 
-    function spawnDragon(nearPlayer = true) {
-      if (dragons.length >= 24 || dragonTpls.length === 0) return;
-      const tpl = dragonTpls[dragons.length % dragonTpls.length];
-      const mesh = cloneSkinned(tpl.scene);
-      scene.add(mesh);
-      const mixer = new THREE.AnimationMixer(mesh);
-      if (tpl.clip) {
-        const act = mixer.clipAction(tpl.clip);
-        act.time = Math.random() * tpl.clip.duration;
-        act.play();
-      }
+    function spawnDragon(near=true) {
+      if (dragons.length>=24||!dragonTpls.length) return;
+      const tpl=dragonTpls[dragons.length%dragonTpls.length];
+      const mesh=cloneSkinned(tpl.scene); scene.add(mesh);
+      const mx=new THREE.AnimationMixer(mesh);
+      if (tpl.clip) { const a=mx.clipAction(tpl.clip); a.time=Math.random()*tpl.clip.duration; a.play(); }
       dragons.push({
-        mesh, mixer,
-        cx: nearPlayer ? player.x + (Math.random() - 0.5) * 40 : player.x,
-        cz: nearPlayer ? player.z + (Math.random() - 0.5) * 40 : player.z,
-        radius: 14 + Math.random() * 24,
-        alt: 8 + Math.random() * 6,
-        speed: (0.25 + Math.random() * 0.25) * (dragons.length % 2 === 0 ? 1 : -1),
-        phase: Math.random() * Math.PI * 2
+        mesh,mixer:mx,
+        cx:near?player.x+(Math.random()-0.5)*40:player.x,
+        cz:near?player.z+(Math.random()-0.5)*40:player.z,
+        radius:14+Math.random()*24, alt:8+Math.random()*6,
+        speed:(0.25+Math.random()*0.25)*(dragons.length%2===0?1:-1),
+        phase:Math.random()*Math.PI*2
       });
     }
 
     // =========================================================================
-    // 6. STRESS-TEST SPAWNERS
+    // 9. ITEM + NPC SPAWNERS
     // =========================================================================
     function spawnDroppedItems(count) {
-      for (let c = 0; c < count; c++) {
-        const idx = activeItems < MAX_ITEMS ? activeItems++ : Math.floor(Math.random() * MAX_ITEMS);
-        const ang = Math.random() * Math.PI * 2;
-        const spd = 2.0 + Math.random() * 9.0;
-        itemX[idx] = player.x + (Math.random() - 0.5) * 1.5;
-        itemY[idx] = player.y + 1.8;
-        itemZ[idx] = player.z + (Math.random() - 0.5) * 1.5;
-        itemVX[idx] = Math.cos(ang) * spd;
-        itemVY[idx] = 4.5 + Math.random() * 8.5;
-        itemVZ[idx] = Math.sin(ang) * spd;
-        itemRot[idx] = Math.random() * 6.28;
-        itemType[idx] = c === 0 ? 0 : (idx % 3);
+      for (let c=0;c<count;c++) {
+        const idx=activeItems<MAX_ITEMS?activeItems++:Math.floor(Math.random()*MAX_ITEMS);
+        const ang=Math.random()*Math.PI*2, spd=2.0+Math.random()*9.0;
+        itemX[idx]=player.x+(Math.random()-0.5)*1.5;
+        itemY[idx]=player.y+1.8;
+        itemZ[idx]=player.z+(Math.random()-0.5)*1.5;
+        itemVX[idx]=Math.cos(ang)*spd; itemVY[idx]=4.5+Math.random()*8.5; itemVZ[idx]=Math.sin(ang)*spd;
+        itemRot[idx]=Math.random()*6.28; itemType[idx]=c===0?0:idx%3;
       }
     }
 
     function spawnNpcs(count) {
-      for (let c = 0; c < count; c++) {
-        if (activeNpcs >= MAX_NPCS) break;
-        const i = activeNpcs++;
-        const ang = Math.random() * Math.PI * 2;
-        const rad = 4.0 + Math.random() * 44.0;
-        const x = player.x + Math.cos(ang) * rad;
-        const z = player.z + Math.sin(ang) * rad;
-        npcX[i] = x;
-        npcZ[i] = z;
-        npcY[i] = wasm.terrain_height(x, z);
-        npcTX[i] = player.x + (Math.random() - 0.5) * 55;
-        npcTZ[i] = player.z + (Math.random() - 0.5) * 55;
-        npcSpeed[i] = 2.2 + Math.random() * 2.4;
-        npcKind[i] = i % 4;
+      for (let c=0;c<count;c++) {
+        if (activeNpcs>=MAX_NPCS) break;
+        const i=activeNpcs++;
+        const ang=Math.random()*Math.PI*2, rad=4.0+Math.random()*50.0;
+        const x=player.x+Math.cos(ang)*rad, z=player.z+Math.sin(ang)*rad;
+        npcX[i]=x; npcZ[i]=z; npcY[i]=wasm.terrain_height(x,z);
+        npcTX[i]=player.x+(Math.random()-0.5)*60;
+        npcTZ[i]=player.z+(Math.random()-0.5)*60;
+        npcSpeed[i]=2.2+Math.random()*2.4; npcKind[i]=i%4;
       }
     }
 
     // =========================================================================
-    // 7. INPUT & UI BINDINGS
+    // 10. INPUT
     // =========================================================================
-    const keys = {};
-    window.addEventListener('keydown', e => {
-      const k = e.key.toLowerCase();
-      keys[k] = true;
-      if (k === ' ') { player.attacking = 0.42; playHeroAnim('attack'); }
-      if (k === 'g') spawnDroppedItems(1);
-      if (k === 'r') { player.fire = !player.fire; applyFireVisual(); }
-      if (k === 'q') camAngleIdx = (camAngleIdx + 3) % 4;
-      if (k === 'e') camAngleIdx = (camAngleIdx + 1) % 4;
+    const keys={};
+    window.addEventListener('keydown',e=>{
+      const k=e.key.toLowerCase(); keys[k]=true;
+      if (k===' ') { player.attacking=0.42; playHeroAnim('attack'); }
+      if (k==='g') spawnDroppedItems(1);
+      if (k==='r') { player.fire=!player.fire; applyFireVisual(); }
+      if (k==='q') camAngleIdx=(camAngleIdx+3)%4;
+      if (k==='e') camAngleIdx=(camAngleIdx+1)%4;
     });
-    window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
-    canvas.addEventListener('mousedown', () => { player.attacking = 0.42; playHeroAnim('attack'); });
-    window.addEventListener('wheel', e => {
-      frustumSize = Math.max(10, Math.min(48, frustumSize + e.deltaY * 0.015));
+    window.addEventListener('keyup',e=>{ keys[e.key.toLowerCase()]=false; });
+    canvas.addEventListener('mousedown',()=>{ player.attacking=0.42; playHeroAnim('attack'); });
+    window.addEventListener('wheel',e=>{
+      frustumSize=Math.max(10,Math.min(55,frustumSize+e.deltaY*0.016));
       updateProjection();
     });
-
-    document.querySelectorAll('.hero-btn').forEach(b => b.onclick = () => switchHero(b.dataset.hero));
-    document.getElementById('btn-fire').onclick = () => { player.fire = !player.fire; applyFireVisual(); };
-    document.getElementById('btn-cam').onclick = () => { camAngleIdx = (camAngleIdx + 1) % 4; };
-    document.getElementById('drop-1').onclick = () => spawnDroppedItems(1);
-    document.getElementById('drop-100').onclick = () => spawnDroppedItems(100);
-    document.getElementById('drop-1000').onclick = () => spawnDroppedItems(1000);
-    document.getElementById('npc-50').onclick = () => spawnNpcs(50);
-    document.getElementById('npc-250').onclick = () => spawnNpcs(250);
-    document.getElementById('npc-1000').onclick = () => spawnNpcs(1000);
-    document.getElementById('btn-dragon').onclick = () => spawnDragon(true);
-    document.getElementById('btn-clear').onclick = () => { activeItems = 0; activeNpcs = 32; };
-    document.getElementById('btn-tp').onclick = () => {
-      player.x += 2500; player.z += 1200;
-      player.y = wasm.terrain_height(player.x, player.z);
-      for (let i = 0; i < activeNpcs; i++) {
-        npcX[i] = player.x + (Math.random() - 0.5) * 45;
-        npcZ[i] = player.z + (Math.random() - 0.5) * 45;
-        npcTX[i] = player.x; npcTZ[i] = player.z;
+    document.querySelectorAll('.hero-btn').forEach(b=>b.onclick=()=>switchHero(b.dataset.hero));
+    document.getElementById('btn-fire').onclick=()=>{player.fire=!player.fire;applyFireVisual();};
+    document.getElementById('btn-cam').onclick=()=>{camAngleIdx=(camAngleIdx+1)%4;};
+    document.getElementById('drop-1').onclick=()=>spawnDroppedItems(1);
+    document.getElementById('drop-100').onclick=()=>spawnDroppedItems(100);
+    document.getElementById('drop-1000').onclick=()=>spawnDroppedItems(1000);
+    document.getElementById('npc-50').onclick=()=>spawnNpcs(50);
+    document.getElementById('npc-250').onclick=()=>spawnNpcs(250);
+    document.getElementById('npc-1000').onclick=()=>spawnNpcs(1000);
+    document.getElementById('btn-dragon').onclick=()=>spawnDragon(true);
+    document.getElementById('btn-clear').onclick=()=>{activeItems=0;activeNpcs=32;};
+    document.getElementById('btn-tp').onclick=()=>{
+      player.x+=2500; player.z+=1200;
+      player.y=wasm.terrain_height(player.x,player.z);
+      for (let i=0;i<activeNpcs;i++) {
+        npcX[i]=player.x+(Math.random()-0.5)*50; npcZ[i]=player.z+(Math.random()-0.5)*50;
+        npcTX[i]=player.x; npcTZ[i]=player.z;
       }
-      dragons.forEach(d => { d.cx = player.x; d.cz = player.z; });
-      syncChunks(player.x, player.z);
+      dragons.forEach(d=>{d.cx=player.x;d.cz=player.z;});
+      syncChunks(player.x,player.z);
     };
-    document.getElementById('btn-eco').onclick = () => {
-      ecoGuard = !ecoGuard;
-      document.getElementById('btn-eco').classList.toggle('active', ecoGuard);
-      document.getElementById('btn-eco').innerText = ecoGuard ? '⚡ Eco Guard: ON' : '⚡ Eco Guard: OFF';
-      if (!ecoGuard) { maxSkeletalLOD = LOD0_POOL_MAX; renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); }
+    document.getElementById('btn-eco').onclick=()=>{
+      ecoGuard=!ecoGuard;
+      document.getElementById('btn-eco').classList.toggle('active',ecoGuard);
+      document.getElementById('btn-eco').innerText=ecoGuard?'⚡ Eco: ON':'⚡ Eco: OFF';
+      if (!ecoGuard) { maxLod0=LOD0_MAX; renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5)); }
     };
 
     // =========================================================================
-    // 8. ZERO-GC GPU MATRIX PACKERS & MAIN LOOP
+    // 11. ZERO-GC GPU PACKER + MAIN LOOP
     // =========================================================================
-    const clock = new THREE.Clock();
-    const camFwd = new THREE.Vector3(), camRight = new THREE.Vector3(), dirVec = new THREE.Vector3();
-    const tmpMat = new THREE.Matrix4(), tmpMul = new THREE.Matrix4();
-    const tmpPos = new THREE.Vector3(), tmpQuat = new THREE.Quaternion(), tmpScl = new THREE.Vector3();
+    const clock=new THREE.Clock();
+    const camFwd=new THREE.Vector3(), camRight=new THREE.Vector3(), dirVec=new THREE.Vector3();
+    const tmpMat=new THREE.Matrix4(), tmpMul=new THREE.Matrix4();
+    const tmpPos=new THREE.Vector3(), tmpQuat=new THREE.Quaternion(), tmpScl=new THREE.Vector3();
 
-    const dropPoolNames = ['drop_sword', 'drop_gold', 'drop_copper'];
-    const npcLod1PoolNames = ['npc_warrior1', 'npc_warrior2', 'npc_barbarian', 'npc_wizard'];
-    const countsBuf = [0, 0, 0, 0];
+    // Drop item pools
+    const dropPoolNames=['drop_sword','drop_gold','drop_copper'];
+    // Real 3D NPC pools — CAPPED at 650 each (not MAX_NPCS!) to avoid OOM
+    const npcLod1Names=['npc_warrior1','npc_warrior2','npc_barbarian','npc_wizard'];
+    const countsBuf=new Int32Array(8); // reusable, no GC
+    const lod1Idx=new Int32Array(MAX_NPCS);
 
-    function packInstancedGroup(poolNames, count, getX, getY, getZ, getRotX, getRotY, getType, yBias) {
+    function packGroup(poolNames, count, getX,getY,getZ,getRX,getRY,getType,yBias) {
+      const len=poolNames.length;
       countsBuf.fill(0);
-      const len = poolNames.length;
-      for (let i = 0; i < count; i++) {
-        const t = getType(i) % len;
-        const p = pools[poolNames[t]];
-        if (!p) continue;
-        const idx = countsBuf[t]++;
-        if (idx >= p.maxCount) continue;
-        tmpPos.set(getX(i), getY(i) + yBias(i), getZ(i));
-        tmpQuat.setFromEuler(new THREE.Euler(getRotX(i), getRotY(i), 0));
-        tmpScl.set(1, 1, 1);
-        tmpMat.compose(tmpPos, tmpQuat, tmpScl);
-        for (let m = 0; m < p.meshes.length; m++) {
-          const part = p.meshes[m];
-          tmpMul.multiplyMatrices(tmpMat, part.localMatrix);
-          part.inst.setMatrixAt(idx, tmpMul);
+      for (let i=0;i<count;i++) {
+        const t=getType(i)%len;
+        const p=pools[poolNames[t]]; if (!p) continue;
+        const idx=countsBuf[t]++; if (idx>=p.maxCount) continue;
+        tmpPos.set(getX(i),getY(i)+yBias(i),getZ(i));
+        tmpQuat.setFromEuler(new THREE.Euler(getRX(i),getRY(i),0));
+        tmpScl.set(1,1,1); tmpMat.compose(tmpPos,tmpQuat,tmpScl);
+        for (let m=0;m<p.meshes.length;m++) {
+          tmpMul.multiplyMatrices(tmpMat,p.meshes[m].localMatrix);
+          p.meshes[m].inst.setMatrixAt(idx,tmpMul);
         }
       }
-      for (let t = 0; t < len; t++) {
-        const p = pools[poolNames[t]];
-        if (!p) continue;
-        const n = Math.min(countsBuf[t], p.maxCount);
-        for (let m = 0; m < p.meshes.length; m++) {
-          p.meshes[m].inst.count = n;
-          p.meshes[m].inst.instanceMatrix.needsUpdate = true;
+      for (let t=0;t<len;t++) {
+        const p=pools[poolNames[t]]; if (!p) continue;
+        const n=Math.min(countsBuf[t],p.maxCount);
+        for (let m=0;m<p.meshes.length;m++) {
+          p.meshes[m].inst.count=n;
+          p.meshes[m].inst.instanceMatrix.needsUpdate=true;
         }
       }
     }
 
-    let fpsFrames = 0, fpsTimer = 0, wasmMsAcc = 0, lastChecks = 0;
-    const lod1Indices = new Int32Array(MAX_NPCS);
+    let fpsF=0,fpsT=0,wasmAcc=0,lastChecks=0;
 
     function animate() {
       requestAnimationFrame(animate);
-      const dt = Math.min(clock.getDelta(), 0.05);
-      const elapsed = clock.elapsedTime;
+      const dt=Math.min(clock.getDelta(),0.05);
+      const elapsed=clock.elapsedTime;
 
-      // 1. Player Movement across Smooth 3D Terrain
-      let inX = 0, inY = 0;
-      if (keys['w'] || keys['arrowup']) inY += 1;
-      if (keys['s'] || keys['arrowdown']) inY -= 1;
-      if (keys['a'] || keys['arrowleft']) inX -= 1;
-      if (keys['d'] || keys['arrowright']) inX += 1;
-      const sprint = !!keys['shift'];
-      if (player.attacking > 0) player.attacking -= dt;
+      // Player movement
+      let inX=0,inY=0;
+      if (keys['w']||keys['arrowup'])    inY+=1;
+      if (keys['s']||keys['arrowdown'])  inY-=1;
+      if (keys['a']||keys['arrowleft'])  inX-=1;
+      if (keys['d']||keys['arrowright']) inX+=1;
+      const sprint=!!keys['shift'];
+      if (player.attacking>0) player.attacking-=dt;
 
-      if ((inX !== 0 || inY !== 0) && player.attacking <= 0) {
-        const yaw = CAM_YAWS[camAngleIdx];
-        camFwd.set(-Math.sin(yaw), 0, -Math.cos(yaw)).normalize();
-        camRight.set(Math.cos(yaw), 0, -Math.sin(yaw)).normalize();
-        dirVec.set(0, 0, 0).addScaledVector(camRight, inX).addScaledVector(camFwd, inY).normalize();
-        const spd = player.speed * (sprint ? 1.7 : 1.0);
-        player.x += dirVec.x * spd * dt;
-        player.z += dirVec.z * spd * dt;
-        player.targetYaw = Math.atan2(dirVec.x, dirVec.z);
-        playHeroAnim(sprint ? 'run' : 'walk');
-      } else if (player.attacking <= 0) {
-        playHeroAnim('idle');
-      }
+      if ((inX||inY)&&player.attacking<=0) {
+        const yaw=CAM_YAWS[camAngleIdx];
+        camFwd.set(-Math.sin(yaw),0,-Math.cos(yaw)).normalize();
+        camRight.set(Math.cos(yaw),0,-Math.sin(yaw)).normalize();
+        dirVec.set(0,0,0).addScaledVector(camRight,inX).addScaledVector(camFwd,inY).normalize();
+        const spd=player.speed*(sprint?1.7:1.0);
+        player.x+=dirVec.x*spd*dt; player.z+=dirVec.z*spd*dt;
+        player.targetYaw=Math.atan2(dirVec.x,dirVec.z);
+        playHeroAnim(sprint?'run':'walk');
+      } else if (player.attacking<=0) playHeroAnim('idle');
 
-      player.y = wasm.terrain_height(player.x, player.z);
-      let diff = player.targetYaw - player.yaw;
-      while (diff > Math.PI) diff -= Math.PI * 2;
-      while (diff < -Math.PI) diff += Math.PI * 2;
-      player.yaw += diff * Math.min(1, dt * 14);
-      playerGroup.position.set(player.x, player.y, player.z);
-      playerGroup.rotation.y = player.yaw;
+      player.y=wasm.terrain_height(player.x,player.z);
+      let diff=player.targetYaw-player.yaw;
+      while (diff>Math.PI) diff-=Math.PI*2;
+      while (diff<-Math.PI) diff+=Math.PI*2;
+      player.yaw+=diff*Math.min(1,dt*14);
+      playerGroup.position.set(player.x,player.y,player.z);
+      playerGroup.rotation.y=player.yaw;
 
-      oceanMesh.position.x = player.x;
-      oceanMesh.position.z = player.z;
-      syncChunks(player.x, player.z);
+      oceanMesh.position.x=player.x; oceanMesh.position.z=player.z;
+      syncChunks(player.x,player.z);
 
-      // 2. WASM Linear Memory Simulation
-      const wt0 = performance.now();
-      if (activeItems > 0) wasm.step_items(activeItems, dt, 22.0);
-      if (activeNpcs > 0) lastChecks = wasm.step_npcs(activeNpcs, dt, player.x, player.z);
-      wasmMsAcc += (performance.now() - wt0);
+      // WASM physics
+      const wt=performance.now();
+      if (activeItems>0) wasm.step_items(activeItems,dt,22.0);
+      if (activeNpcs>0) lastChecks=wasm.step_npcs(activeNpcs,dt,player.x,player.z);
+      wasmAcc+=performance.now()-wt;
 
-      // 3. Instanced Dropped Items (Zero Capsules, Zero GC)
-      packInstancedGroup(
-        dropPoolNames, activeItems,
-        i => itemX[i], i => itemY[i], i => itemZ[i],
-        i => itemRot[i], i => itemRot[i] * 0.7, i => itemType[i], () => 0.15
-      );
+      // Render dropped items
+      packGroup(dropPoolNames,activeItems,
+        i=>itemX[i],i=>itemY[i],i=>itemZ[i],
+        i=>itemRot[i],i=>itemRot[i]*0.7,i=>itemType[i],()=>0.15);
 
-      // 4. Real 3D NPCs: Nearest <= maxSkeletalLOD -> Animated Skeletal Rigs; Overflow -> Real 3D Instanced Warriors/Wizards!
-      let lod0Count = 0;
-      let lod1Count = 0;
-      for (let i = 0; i < activeNpcs; i++) {
-        const dx = npcX[i] - player.x;
-        const dz = npcZ[i] - player.z;
-        if (dx * dx + dz * dz < 1100 && lod0Count < maxSkeletalLOD) {
-          const slot = lod0Pool[lod0Count++];
-          slot.mesh.visible = true;
-          slot.mesh.position.set(npcX[i], npcY[i], npcZ[i]);
-          slot.mesh.rotation.y = Math.atan2(npcVX[i], npcVZ[i]);
+      // Split NPCs into LOD-0 (skeletal) and LOD-1 (GPU instanced)
+      let n0=0,n1=0;
+      for (let i=0;i<activeNpcs;i++) {
+        const dx=npcX[i]-player.x, dz=npcZ[i]-player.z;
+        if (dx*dx+dz*dz<1200&&n0<maxLod0) {
+          const slot=lod0Pool[n0++];
+          slot.mesh.visible=true;
+          slot.mesh.position.set(npcX[i],npcY[i],npcZ[i]);
+          slot.mesh.rotation.y=Math.atan2(npcVX[i],npcVZ[i]);
           slot.mixer.update(dt);
         } else {
-          lod1Indices[lod1Count++] = i;
+          lod1Idx[n1++]=i;
         }
       }
-      for (let s = lod0Count; s < LOD0_POOL_MAX; s++) lod0Pool[s].mesh.visible = false;
+      for (let s=n0;s<LOD0_MAX;s++) { if(lod0Pool[s]) lod0Pool[s].mesh.visible=false; }
 
-      packInstancedGroup(
-        npcLod1PoolNames, lod1Count,
-        k => npcX[lod1Indices[k]],
-        k => npcY[lod1Indices[k]],
-        k => npcZ[lod1Indices[k]],
-        () => 0,
-        k => Math.atan2(npcVX[lod1Indices[k]], npcVZ[lod1Indices[k]]),
-        k => npcKind[lod1Indices[k]],
-        k => Math.abs(Math.sin(elapsed * 8 + lod1Indices[k])) * 0.1
-      );
+      packGroup(npcLod1Names,n1,
+        k=>npcX[lod1Idx[k]],k=>npcY[lod1Idx[k]],k=>npcZ[lod1Idx[k]],
+        ()=>0,k=>Math.atan2(npcVX[lod1Idx[k]],npcVZ[lod1Idx[k]]),
+        k=>npcKind[lod1Idx[k]],k=>Math.abs(Math.sin(elapsed*8+lod1Idx[k]))*0.1);
 
-      // 5. Flying 3D Animated Dragons
-      for (let i = 0; i < dragons.length; i++) {
-        const d = dragons[i];
-        // Gently anchor distant dragons back near player's open-world horizon
-        if (Math.hypot(d.cx - player.x, d.cz - player.z) > 85) { d.cx = player.x; d.cz = player.z; }
-        const ang = elapsed * d.speed + d.phase;
-        const nx = d.cx + Math.cos(ang) * d.radius;
-        const nz = d.cz + Math.sin(ang) * d.radius;
-        const ny = Math.max(wasm.terrain_height(nx, nz) + 4.0, d.alt + Math.sin(elapsed * 1.4 + i) * 1.2);
-        d.mesh.position.set(nx, ny, nz);
-        // Face flight tangent direction
-        d.mesh.rotation.y = Math.atan2(-Math.sin(ang) * d.speed, Math.cos(ang) * d.speed);
+      // Dragons
+      for (let i=0;i<dragons.length;i++) {
+        const d=dragons[i];
+        if (Math.hypot(d.cx-player.x,d.cz-player.z)>90) {d.cx=player.x;d.cz=player.z;}
+        const ang=elapsed*d.speed+d.phase;
+        const nx=d.cx+Math.cos(ang)*d.radius, nz=d.cz+Math.sin(ang)*d.radius;
+        const ny=Math.max(wasm.terrain_height(nx,nz)+4.0,d.alt+Math.sin(elapsed*1.4+i)*1.2);
+        d.mesh.position.set(nx,ny,nz);
+        d.mesh.rotation.y=Math.atan2(-Math.sin(ang)*d.speed,Math.cos(ang)*d.speed);
         d.mixer.update(dt);
       }
 
-      // 6. Cascading 3D Waterfalls & Foam
-      const wfMax = Math.min(activeWaterfalls.length, WATERFALL_MAX);
-      let foamIdx = 0;
-      for (let i = 0; i < wfMax; i++) {
-        const wf = activeWaterfalls[i];
-        const height = Math.max(0.6, wf.topY - wf.botY);
-        tmpPos.set(wf.x, wf.botY + height * 0.5, wf.z);
-        tmpQuat.setFromEuler(new THREE.Euler(0, wf.ry, 0));
-        tmpScl.set(1, height, 1);
-        tmpMat.compose(tmpPos, tmpQuat, tmpScl);
-        waterfallInst.setMatrixAt(i, tmpMat);
-        for (let f = 0; f < 3 && foamIdx < WATERFALL_MAX * 3; f++) {
-          const t = (elapsed * 1.5 + f * 0.33 + i * 0.17) % 1.0;
-          tmpPos.set(wf.x + Math.sin(elapsed * 4 + f) * 0.4, wf.topY - t * height, wf.z + Math.cos(elapsed * 4 + f) * 0.4);
-          tmpScl.setScalar(0.65 + t * 0.85);
-          tmpMat.compose(tmpPos, tmpQuat, tmpScl);
-          foamInst.setMatrixAt(foamIdx++, tmpMat);
+      // Waterfalls
+      const wfN=Math.min(activeWaterfalls.length,WATERFALL_MAX);
+      let fi=0;
+      for (let i=0;i<wfN;i++) {
+        const wf=activeWaterfalls[i];
+        const ht=Math.max(0.6,wf.topY-wf.botY);
+        tmpPos.set(wf.x,wf.botY+ht*0.5,wf.z);
+        tmpQuat.setFromEuler(new THREE.Euler(0,wf.ry,0));
+        tmpScl.set(1,ht,1); tmpMat.compose(tmpPos,tmpQuat,tmpScl);
+        wfInst.setMatrixAt(i,tmpMat);
+        for (let f=0;f<3&&fi<WATERFALL_MAX*3;f++) {
+          const t=(elapsed*1.5+f*0.33+i*0.17)%1.0;
+          tmpPos.set(wf.x+Math.sin(elapsed*4+f)*0.4,wf.topY-t*ht,wf.z+Math.cos(elapsed*4+f)*0.4);
+          tmpScl.setScalar(0.6+t*0.9); tmpMat.compose(tmpPos,tmpQuat,tmpScl);
+          foamInst.setMatrixAt(fi++,tmpMat);
         }
       }
-      waterfallInst.count = wfMax; waterfallInst.instanceMatrix.needsUpdate = true;
-      foamInst.count = foamIdx; foamInst.instanceMatrix.needsUpdate = true;
+      wfInst.count=wfN; wfInst.instanceMatrix.needsUpdate=true;
+      foamInst.count=fi; foamInst.instanceMatrix.needsUpdate=true;
 
       if (currentHero) currentHero.mixer.update(dt);
 
-      const cyaw = CAM_YAWS[camAngleIdx];
-      const dist = 50;
-      const horiz = Math.cos(Math.atan(1 / Math.SQRT2)) * dist;
-      const vert = Math.sin(Math.atan(1 / Math.SQRT2)) * dist * 1.1;
-      camera.position.set(player.x + Math.sin(cyaw) * horiz, player.y + vert, player.z + Math.cos(cyaw) * horiz);
-      camera.lookAt(player.x, player.y + 0.8, player.z);
+      // Camera — isometric angle
+      const cyaw=CAM_YAWS[camAngleIdx];
+      const dist=55;
+      const hd=Math.cos(Math.atan(1/Math.SQRT2))*dist;
+      const vd=Math.sin(Math.atan(1/Math.SQRT2))*dist*1.1;
+      camera.position.set(player.x+Math.sin(cyaw)*hd, player.y+vd, player.z+Math.cos(cyaw)*hd);
+      camera.lookAt(player.x, player.y+0.9, player.z);
 
-      renderer.render(scene, camera);
+      renderer.render(scene,camera);
 
-      fpsFrames++; fpsTimer += dt;
-      if (fpsTimer >= 0.5) {
-        const fps = Math.round(fpsFrames / fpsTimer);
-        document.getElementById('t-fps').innerText = `${fps} FPS`;
-        document.getElementById('t-fps').className = 't-val ' + (fps >= 45 ? 't-ok' : 't-warn');
-        document.getElementById('t-wasm').innerText = `${(wasmMsAcc / fpsFrames).toFixed(2)} ms`;
-        document.getElementById('t-draws').innerText = `${renderer.info.render.calls} / ${(renderer.info.render.triangles / 1000).toFixed(0)}k`;
-        document.getElementById('t-hash').innerText = lastChecks.toLocaleString();
-        document.getElementById('t-npcs').innerText = `${lod0Count} + ${lod1Count}`;
-        document.getElementById('t-items').innerText = `${dragons.length} / ${activeItems} / ${activeChunks.size}`;
-        document.getElementById('coords-out').innerText = `X:${Math.round(player.x)} Y:${player.y.toFixed(1)} Z:${Math.round(player.z)}`;
-        document.getElementById('biome-name').innerText =
-          player.y < 0.08 ? 'Biome: River Basin' : player.y < 2.3 ? 'Biome: Emerald Plains' : player.y < 4.1 ? 'Biome: Granite Cliffs' : 'Biome: Alpine Peaks';
-
+      // Telemetry
+      fpsF++; fpsT+=dt;
+      if (fpsT>=0.5) {
+        const fps=Math.round(fpsF/fpsT);
+        document.getElementById('t-fps').innerText=`${fps} FPS`;
+        document.getElementById('t-fps').className='t-val '+(fps>=50?'t-ok':fps>=30?'t-warn':'t-crit');
+        document.getElementById('t-wasm').innerText=`${(wasmAcc/fpsF).toFixed(2)} ms`;
+        document.getElementById('t-draws').innerText=`${renderer.info.render.calls} / ${(renderer.info.render.triangles/1000).toFixed(0)}k`;
+        document.getElementById('t-hash').innerText=lastChecks.toLocaleString();
+        document.getElementById('t-npcs').innerText=`${n0} + ${n1}`;
+        document.getElementById('t-items').innerText=`${dragons.length} / ${activeItems} / ${activeChunks.size}`;
+        document.getElementById('coords-out').innerText=`X:${Math.round(player.x)} Y:${player.y.toFixed(1)} Z:${Math.round(player.z)}`;
+        const by=player.y;
+        document.getElementById('biome-name').innerText=
+          by<0.1?'Biome: River Basin':by<1.6?'Biome: Emerald Plains':by<2.8?'Biome: Dark Forest':by<4.5?'Biome: Granite Cliffs':'Biome: Alpine Peaks';
         if (ecoGuard) {
-          if (fps < 36) {
-            maxSkeletalLOD = 14; renderer.setPixelRatio(0.9);
-            document.getElementById('gov-badge').innerText = 'ECO THROTTLE';
-            document.getElementById('gov-badge').style.color = '#f59e0b';
-          } else {
-            maxSkeletalLOD = LOD0_POOL_MAX; renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-            document.getElementById('gov-badge').innerText = 'OPTIMAL';
-            document.getElementById('gov-badge').style.color = '#10b981';
+          if (fps<36) { maxLod0=14; renderer.setPixelRatio(0.9);
+            document.getElementById('gov-badge').innerText='ECO THROTTLE';
+            document.getElementById('gov-badge').style.color='#f59e0b';
+          } else { maxLod0=LOD0_MAX; renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));
+            document.getElementById('gov-badge').innerText='OPTIMAL';
+            document.getElementById('gov-badge').style.color='#10b981';
           }
         }
-        fpsFrames = 0; fpsTimer = 0; wasmMsAcc = 0;
+        fpsF=0; fpsT=0; wasmAcc=0;
       }
     }
 
+    // =========================================================================
+    // 12. BOOT — load all pools then start
+    // =========================================================================
     (async () => {
-      const swGltf = await loader.loadAsync('assets_3d/quaternius/single_knight_pack/Sword.glb');
-      swGltf.scene.updateMatrixWorld(true);
-      const b = new THREE.Box3().setFromObject(swGltf.scene);
-      const sz = new THREE.Vector3();
-      b.getSize(sz);
-      swGltf.scene.scale.multiplyScalar(1.28 / Math.max(sz.x, sz.y, sz.z, 0.001));
-      swordTpl = swGltf.scene;
+      // Sword template
+      try {
+        const sw=await loader.loadAsync('assets_3d/quaternius/single_knight_pack/Sword.glb');
+        sw.scene.updateMatrixWorld(true);
+        const b=new THREE.Box3().setFromObject(sw.scene);
+        const sz=new THREE.Vector3(); b.getSize(sz);
+        sw.scene.scale.multiplyScalar(1.28/Math.max(sz.x,sz.y,sz.z,0.001));
+        swordTpl=sw.scene;
+      } catch(e) { console.warn('Sword tpl load fail',e); }
 
+      // Load all GPU instanced pools in parallel
       await Promise.all([
-        // Cohesive Realistic Quaternius Environment & Medieval Castles/Villages
-        createPool('mountains', 'assets_3d/quaternius/real_time_strategy_pack/MountainLarge_Single.glb', 350, 6.2),
-        createPool('trees', 'assets_3d/quaternius/real_time_strategy_pack/Resource_PineTree_Group.glb', 700, 3.6),
-        createPool('rocks', 'assets_3d/quaternius/real_time_strategy_pack/Resource_Rock_1.glb', 400, 1.6),
-        createPool('castles', 'assets_3d/quaternius/real_time_strategy_pack/Wonder_SecondAge_Level3.glb', 36, 7.2),
-        createPool('townCenters', 'assets_3d/quaternius/real_time_strategy_pack/TownCenter_SecondAge_Level3.glb', 50, 4.4),
-        createPool('houses', 'assets_3d/quaternius/medieval_village_pack/House_1.glb', 100, 3.2),
-        createPool('inns', 'assets_3d/quaternius/medieval_village_pack/Inn.glb', 50, 3.8),
-        createPool('blacksmiths', 'assets_3d/quaternius/medieval_village_pack/Blacksmith.glb', 50, 3.5),
-        createPool('windmills', 'assets_3d/quaternius/real_time_strategy_pack/Windmill_SecondAge.glb', 50, 4.8),
-        createPool('walls', 'assets_3d/quaternius/real_time_strategy_pack/Wall_SecondAge.glb', 500, 2.5),
-        createPool('towers', 'assets_3d/quaternius/real_time_strategy_pack/WatchTower_SecondAge_Level3.glb', 160, 4.2),
-        createPool('gold', 'assets_3d/quaternius/real_time_strategy_pack/Resource_Gold_1.glb', 250, 1.3),
-        // Dropped Physics Items
-        createPool('drop_sword', 'assets_3d/quaternius/single_knight_pack/Sword.glb', MAX_ITEMS, 1.25, true),
-        createPool('drop_gold', 'assets_3d/kaykit/resource_bits/Gold_Bars_Stack_Medium.gltf', MAX_ITEMS, 0.75, true),
-        createPool('drop_copper', 'assets_3d/kaykit/resource_bits/Copper_Nuggets.gltf', MAX_ITEMS, 0.75, true),
-        // Real 3D Instanced LOD-1 NPCs (Zero Colored Capsules!)
-        createPool('npc_warrior1', 'assets_3d/poly_pizza/warrior__Warrior__Z6ZUtm6kc1.glb', MAX_NPCS, 2.2),
-        createPool('npc_warrior2', 'assets_3d/poly_pizza/warrior__Warrior__RaWl2GJ0NZ.glb', MAX_NPCS, 2.2),
-        createPool('npc_barbarian', 'assets_3d/poly_pizza/barbarian__Warrior__o6i43Vacwc.glb', MAX_NPCS, 2.2),
-        createPool('npc_wizard', 'assets_3d/poly_pizza/wizard__Evil_Wizard__bdxawstqtq.glb', MAX_NPCS, 2.2),
+        // Environment — Quaternius Realistic RTS + Village Pack
+        createPool('mountains',  'assets_3d/quaternius/real_time_strategy_pack/MountainLarge_Single.glb',   350, 6.5),
+        createPool('trees',      'assets_3d/quaternius/real_time_strategy_pack/Resource_PineTree_Group.glb',700, 3.8),
+        createPool('rocks',      'assets_3d/quaternius/real_time_strategy_pack/Resource_Rock_1.glb',        400, 1.8),
+        createPool('castles',    'assets_3d/quaternius/real_time_strategy_pack/Wonder_SecondAge_Level3.glb', 36, 7.5),
+        createPool('townCenters','assets_3d/quaternius/real_time_strategy_pack/TownCenter_SecondAge_Level3.glb',50,4.6),
+        createPool('houses',     'assets_3d/quaternius/medieval_village_pack/House_1.glb',                  150, 3.4),
+        createPool('inns',       'assets_3d/quaternius/medieval_village_pack/Inn.glb',                       60, 4.0),
+        createPool('blacksmiths','assets_3d/quaternius/medieval_village_pack/Blacksmith.glb',                60, 3.6),
+        createPool('windmills',  'assets_3d/quaternius/real_time_strategy_pack/Windmill_SecondAge.glb',      60, 5.0),
+        createPool('walls',      'assets_3d/quaternius/real_time_strategy_pack/Wall_SecondAge.glb',         600, 2.6),
+        createPool('towers',     'assets_3d/quaternius/real_time_strategy_pack/WatchTower_SecondAge_Level3.glb',160,4.4),
+        createPool('gold',       'assets_3d/quaternius/real_time_strategy_pack/Resource_Gold_1.glb',        300, 1.4),
+        // Dropped physics items
+        createPool('drop_sword', 'assets_3d/quaternius/single_knight_pack/Sword.glb',         MAX_ITEMS, 1.25, true),
+        createPool('drop_gold',  'assets_3d/kaykit/resource_bits/Gold_Bars_Stack_Medium.gltf',MAX_ITEMS, 0.75, true),
+        createPool('drop_copper','assets_3d/kaykit/resource_bits/Copper_Nuggets.gltf',        MAX_ITEMS, 0.75, true),
+        // LOD-1 real 3D warrior instances — 650 each (2600 real 3D NPCs max on screen!)
+        // Using 650 NOT MAX_NPCS to avoid GPU OOM — WASM tracks all 2500 positions
+        createPool('npc_warrior1', 'assets_3d/poly_pizza/warrior__Warrior__Z6ZUtm6kc1.glb',   650, 2.3),
+        createPool('npc_warrior2', 'assets_3d/poly_pizza/warrior__Warrior__RaWl2GJ0NZ.glb',   650, 2.3),
+        createPool('npc_barbarian','assets_3d/poly_pizza/barbarian__Warrior__o6i43Vacwc.glb', 650, 2.3),
+        createPool('npc_wizard',   'assets_3d/poly_pizza/wizard__Evil_Wizard__bdxawstqtq.glb',650, 2.3),
       ]);
 
-      await Promise.all([switchHero('king'), buildNpcLodPool(), preloadDragons()]);
+      // Hero + NPC pool + dragons in parallel
+      await Promise.all([switchHero('king'), buildNpcPool(), preloadDragons()]);
+
       syncChunks(player.x, player.z);
-      spawnNpcs(80);
-      for (let d = 0; d < 6; d++) spawnDragon(true);
-      document.getElementById('loading-banner').style.display = 'none';
+      spawnNpcs(80);            // start with 80 real 3D warriors on the field
+      for (let d=0;d<6;d++) spawnDragon(true); // 6 flying dragons from the start
+
+      document.getElementById('loading-banner').style.display='none';
       animate();
     })();
   </script>
