@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Realms of Will — 3D Entity Curator (2,758 Scraped Assets)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      background: #0a0e14; color: #e2e8f0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    .app {
+      display: grid;
+      grid-template-columns: 1fr 440px;
+      grid-template-rows: 64px 1fr;
+      width: 100vw; height: 100vh;
+    }
+    /* Header */
+    header {
+      grid-column: 1 / -1;
+      background: #0f1621;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 18px; gap: 12px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 16px; }
+    .brand-badge {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #0b0f17; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 900;
+    }
+    .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    input[type="text"], select {
+      background: #161f2e; color: #f1f5f9; border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px; padding: 7px 11px; font-size: 12px; outline: none;
+    }
+    input[type="text"]:focus, select:focus { border-color: #f59e0b; }
+    button {
+      background: #1e293b; color: #e2e8f0; border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px; padding: 7px 12px; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.12s ease;
+    }
+    button:hover { background: #293548; border-color: rgba(255,255,255,0.25); }
+    .btn-gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #090d14; border: none; font-weight: 800; }
+    .btn-gold:hover { filter: brightness(1.08); }
+    .btn-green { background: #065f46; border-color: #10b981; color: #ecfdf5; }
+    .btn-red { background: #7f1d1d; border-color: #ef4444; color: #fef2f2; }
+
+    /* Left Panel: Filters + Paginated Virtual 3D Grid */
+    .left-pane {
+      display: flex; flex-direction: column; overflow: hidden;
+      border-right: 1px solid rgba(255,255,255,0.08);
+    }
+    .cat-bar {
+      display: flex; align-items: center; gap: 6px; padding: 10px 16px;
+      background: #0d131d; border-bottom: 1px solid rgba(255,255,255,0.06);
+      overflow-x: auto; flex-shrink: 0;
+    }
+    .cat-pill {
+      padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+      background: #161f2e; color: #94a3b8; border: 1px solid rgba(255,255,255,0.08);
+      white-space: nowrap; cursor: pointer;
+    }
+    .cat-pill.active {
+      background: #f59e0b; color: #0b0f17; border-color: #f59e0b;
+    }
+    .sub-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 16px; font-size: 12px; color: #94a3b8;
+      background: #0b1018; border-bottom: 1px solid rgba(255,255,255,0.05);
+      flex-shrink: 0;
+    }
+    .grid-wrap {
+      flex: 1; overflow-y: auto; padding: 14px 16px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+      gap: 12px; align-content: start;
+    }
+    .card {
+      background: #121a26; border: 2px solid rgba(255,255,255,0.07);
+      border-radius: 10px; overflow: hidden; cursor: pointer;
+      display: flex; flex-direction: column; transition: transform 0.12s, border-color 0.12s;
+      position: relative;
+    }
+    .card:hover { transform: translateY(-2px); border-color: rgba(245,158,11,0.5); }
+    .card.selected { border-color: #38bdf8; box-shadow: 0 0 0 2px rgba(56,189,248,0.25); }
+    .card.kept { border-color: #10b981; }
+    .card.dropped { opacity: 0.45; border-color: #ef4444; }
+    .thumb-box {
+      width: 100%; height: 145px; background: radial-gradient(circle at 50% 60%, #1d283a, #0c1119);
+      display: flex; align-items: center; justify-content: center; position: relative;
+    }
+    .thumb-box img { width: 100%; height: 100%; object-fit: contain; }
+    .thumb-loading { font-size: 11px; color: #64748b; }
+    .status-tag {
+      position: absolute; top: 6px; right: 6px;
+      font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 5px;
+    }
+    .tag-kept { background: #10b981; color: #052e16; }
+    .tag-dropped { background: #ef4444; color: #fff; }
+    .source-tag {
+      position: absolute; top: 6px; left: 6px;
+      font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px;
+      background: rgba(15,23,42,0.85); color: #94a3b8; text-transform: uppercase;
+    }
+    .card-body { padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; }
+    .card-title { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-meta { font-size: 10px; color: #64748b; display: flex; justify-content: space-between; }
+    .card-actions { display: flex; gap: 4px; margin-top: 4px; }
+    .card-actions button { flex: 1; padding: 4px; font-size: 11px; }
+
+    /* Right Panel: Live Interactive 3D Stage */
+    .right-pane {
+      display: flex; flex-direction: column; background: #0d131d; overflow: hidden;
+    }
+    #stage-wrap {
+      width: 100%; height: 370px; position: relative;
+      background: radial-gradient(circle at 50% 45%, #1b2738, #090d14);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    #stage-canvas { width: 100%; height: 100%; display: block; }
+    .stage-overlay {
+      position: absolute; top: 10px; left: 10px; right: 10px;
+      display: flex; justify-content: space-between; pointer-events: none;
+    }
+    .stage-pill {
+      pointer-events: auto;
+      background: rgba(10,14,20,0.8); padding: 4px 10px; border-radius: 6px;
+      font-size: 11px; border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1;
+    }
+    .inspector-body {
+      flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .stat-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    }
+    .stat-card {
+      background: #131c2a; padding: 8px 10px; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .stat-label { font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 700; }
+    .stat-val { font-size: 14px; font-weight: 800; color: #f8fafc; margin-top: 2px; }
+    .anim-list {
+      display: flex; flex-wrap: wrap; gap: 6px; max-height: 115px; overflow-y: auto;
+    }
+    .anim-btn { font-size: 11px; padding: 4px 8px; background: #172233; }
+    .anim-btn.active { background: #38bdf8; color: #082f49; border-color: #38bdf8; }
+    .bone-box {
+      font-family: monospace; font-size: 11px; color: #94a3b8;
+      background: #0a0f17; padding: 8px; border-radius: 6px;
+      max-height: 85px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.06);
+    }
+    .pager { display: flex; align-items: center; gap: 6px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <span>👑 Realms of Will — 3D Entity Curator</span>
+        <span class="brand-badge" id="total-badge">Loading...</span>
+      </div>
+      <div class="controls">
+        <input type="text" id="search-box" placeholder="Search king, dragon, sword, wall, mountain..." style="width: 220px;" />
+        <select id="style-filter">
+          <option value="NO_CUTE" selected>Realistic & Stylized (No Chibi/Blocky)</option>
+          <option value="Realistic">Realistic Only</option>
+          <option value="ALL">All Styles (Incl. Chibi & Blocky)</option>
+          <option value="Chibi">Chibi Only (KayKit)</option>
+          <option value="Blocky">Blocky Only (Kenney)</option>
+        </select>
+        <select id="source-filter">
+          <option value="ALL">All Sources (CC0)</option>
+          <option value="poly_pizza">Poly Pizza</option>
+          <option value="quaternius">Quaternius</option>
+          <option value="kaykit">KayKit</option>
+          <option value="kenney">Kenney</option>
+        </select>
+        <select id="status-filter">
+          <option value="ALL">All Status</option>
+          <option value="UNDECIDED">Undecided Only</option>
+          <option value="KEEP">Kept ✅</option>
+          <option value="DROP">Dropped ❌</option>
+        </select>
+        <button class="btn-green" id="btn-keep-page">✅ Keep Page</button>
+        <button class="btn-gold" id="btn-export">📦 Export GitHub Manifest</button>
+        <button onclick="location.href='open_world.html'">🌍 Infinite Open World</button>
+        <button onclick="location.href='realm_prototype.html'">🏰 Isometric Citadel</button>
+      </div>
+    </header>
+
+    <div class="left-pane">
+      <div class="cat-bar" id="cat-bar"></div>
+      <div class="sub-bar">
+        <span id="summary-text">Showing 0 models</span>
+        <div class="pager">
+          <button id="prev-page">◀ Prev</button>
+          <span id="page-label">Page 1 / 1</span>
+          <button id="next-page">Next ▶</button>
+        </div>
+      </div>
+      <div class="grid-wrap" id="grid-wrap"></div>
+    </div>
+
+    <div class="right-pane">
+      <div id="stage-wrap">
+        <canvas id="stage-canvas"></canvas>
+        <div class="stage-overlay">
+          <span class="stage-pill" id="stage-title">Click any entity to inspect</span>
+          <button class="stage-pill" id="btn-iso-snap" style="cursor:pointer;">📐 Isometric Angle</button>
+        </div>
+      </div>
+      <div class="inspector-body">
+        <div style="display:flex; gap:8px;">
+          <button class="btn-green" id="stage-keep" style="flex:1; padding:10px;">✅ KEEP [K]</button>
+          <button class="btn-red" id="stage-drop" style="flex:1; padding:10px;">❌ DROP [D]</button>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-label">File Size</div><div class="stat-val" id="st-size">-</div></div>
+          <div class="stat-card"><div class="stat-label">Triangles</div><div class="stat-val" id="st-tris">-</div></div>
+          <div class="stat-card"><div class="stat-label">Meshes / Calls</div><div class="stat-val" id="st-meshes">-</div></div>
+        </div>
+
+        <div>
+          <div class="stat-label" style="margin-bottom:6px;">Skeletal Animations (<span id="anim-count">0</span>)</div>
+          <div class="anim-list" id="anim-list"><span style="font-size:11px; color:#64748b;">No embedded clips</span></div>
+        </div>
+
+        <div>
+          <div class="stat-label" style="margin-bottom:6px;">Hand / Weapon Sockets & Bones</div>
+          <div class="bone-box" id="bone-box">-</div>
+        </div>
+
+        <div style="font-size:11px; color:#64748b;" id="path-box">Path: -</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from './libs/three/three.module.min.js';
+    import { GLTFLoader } from './libs/three/loaders/GLTFLoader.js';
+    import { OrbitControls } from './libs/three/controls/OrbitControls.js';
+
+    const PAGE_SIZE = 12; // Keeps GPU memory tiny & zero lag!
+    const STORAGE_KEY = 'realms_kept_decisions_v1';
+
+    let catalog = [];
+    let filtered = [];
+    let activeCat = 'Characters & NPCs';
+    let currentPage = 0;
+    let selectedItem = null;
+    let decisions = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); // id -> 'KEEP' | 'DROP'
+    const thumbCache = new Map(); // id -> dataURL (LRU bounded)
+
+    const loader = new GLTFLoader();
+
+    // =========================================================================
+    // 1. SINGLE OFFSCREEN THUMBNAIL RENDERER (Renders 12 per page, 0% idle GPU)
+    // =========================================================================
+    const thumbCanvas = document.createElement('canvas');
+    thumbCanvas.width = 240;
+    thumbCanvas.height = 195;
+    const thumbRenderer = new THREE.WebGLRenderer({ canvas: thumbCanvas, antialias: false, alpha: true, preserveDrawingBuffer: true });
+    thumbRenderer.setSize(240, 195, false);
+    thumbRenderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    const thumbScene = new THREE.Scene();
+    const thumbCam = new THREE.PerspectiveCamera(36, 240 / 195, 0.05, 200);
+    thumbScene.add(new THREE.AmbientLight(0xffffff, 1.3));
+    const tDir = new THREE.DirectionalLight(0xfff4e0, 1.8);
+    tDir.position.set(5, 8, 6);
+    thumbScene.add(tDir);
+
+    function disposeObject(root) {
+      root.traverse(obj => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+          const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+          mats.forEach(m => {
+            if (m.map) m.map.dispose();
+            m.dispose();
+          });
+        }
+      });
+    }
+
+    function fitCameraAndCenter(root, cam, aspect = 1) {
+      root.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(root);
+      const size = new THREE.Vector3();
+      const center = new THREE.Vector3();
+      box.getSize(size);
+      box.getCenter(center);
+
+      const maxDim = Math.max(size.x, size.y, size.z, 0.001);
+      const scale = 1.7 / maxDim;
+      root.scale.multiplyScalar(scale);
+      root.updateMatrixWorld(true);
+
+      const scaledBox = new THREE.Box3().setFromObject(root);
+      const scaledCenter = new THREE.Vector3();
+      scaledBox.getCenter(scaledCenter);
+      root.position.sub(scaledCenter);
+
+      // Isometric 3/4 view angle
+      cam.position.set(2.0, 1.65, 2.2);
+      cam.lookAt(0, 0, 0);
+      cam.updateProjectionMatrix();
+    }
+
+    let thumbQueueToken = 0;
+    async function renderThumbnailsForPage(items, token) {
+      for (const item of items) {
+        if (token !== thumbQueueToken) return;
+        const imgEl = document.getElementById('thumb-' + item.id);
+        if (!imgEl) continue;
+
+        if (thumbCache.has(item.id)) {
+          imgEl.src = thumbCache.get(item.id);
+          imgEl.style.display = 'block';
+          imgEl.previousElementSibling.style.display = 'none';
+          continue;
+        }
+
+        try {
+          const gltf = await loader.loadAsync(item.url);
+          if (token !== thumbQueueToken) {
+            disposeObject(gltf.scene);
+            return;
+          }
+          const model = gltf.scene;
+          fitCameraAndCenter(model, thumbCam);
+          thumbScene.add(model);
+          thumbRenderer.render(thumbScene, thumbCam);
+          const dataUrl = thumbCanvas.toDataURL('image/webp', 0.82);
+          thumbScene.remove(model);
+          disposeObject(model);
+
+          // Cap cache size to 150 thumbnails to stay lightweight
+          if (thumbCache.size > 150) {
+            const firstKey = thumbCache.keys().next().value;
+            thumbCache.delete(firstKey);
+          }
+          thumbCache.set(item.id, dataUrl);
+
+          imgEl.src = dataUrl;
+          imgEl.style.display = 'block';
+          imgEl.previousElementSibling.style.display = 'none';
+        } catch (err) {
+          if (imgEl.previousElementSibling) {
+            imgEl.previousElementSibling.innerText = 'Preview Error';
+          }
+        }
+      }
+    }
+
+    // =========================================================================
+    // 2. LIVE INTERACTIVE 3D STAGE INSPECTOR (Single WebGL Context)
+    // =========================================================================
+    const stageCanvas = document.getElementById('stage-canvas');
+    const stageRenderer = new THREE.WebGLRenderer({ canvas: stageCanvas, antialias: true, alpha: true });
+    stageRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    stageRenderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    const stageScene = new THREE.Scene();
+    const stageCam = new THREE.PerspectiveCamera(40, 1, 0.05, 100);
+    stageCam.position.set(2.4, 2.0, 2.4);
+
+    const controls = new OrbitControls(stageCam, stageCanvas);
+    controls.enableDamping = true;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 1.4;
+
+    stageScene.add(new THREE.AmbientLight(0xffffff, 1.25));
+    const keyLight = new THREE.DirectionalLight(0xfff5e4, 1.9);
+    keyLight.position.set(5, 9, 6);
+    stageScene.add(keyLight);
+    const rimLight = new THREE.DirectionalLight(0x38bdf8, 0.7);
+    rimLight.position.set(-5, 3, -5);
+    stageScene.add(rimLight);
+
+    const gridHelper = new THREE.GridHelper(3, 6, 0x334155, 0x1e293b);
+    gridHelper.position.y = -0.85;
+    stageScene.add(gridHelper);
+
+    let currentStageModel = null;
+    let mixer = null;
+    let activeAction = null;
+    const clock = new THREE.Clock();
+
+    function resizeStage() {
+      const wrap = document.getElementById('stage-wrap');
+      const w = wrap.clientWidth, h = wrap.clientHeight;
+      stageRenderer.setSize(w, h, false);
+      stageCam.aspect = w / h;
+      stageCam.updateProjectionMatrix();
+    }
+    window.addEventListener('resize', resizeStage);
+    resizeStage();
+
+    async function inspectModel(item) {
+      selectedItem = item;
+      document.querySelectorAll('.card').forEach(c => c.classList.toggle('selected', c.dataset.id === item.id));
+      document.getElementById('stage-title').innerText = `${item.name} (${item.source})`;
+      document.getElementById('st-size').innerText = `${item.sizeKB} KB`;
+      document.getElementById('path-box').innerText = `Path: ${item.url}`;
+
+      if (currentStageModel) {
+        stageScene.remove(currentStageModel);
+        disposeObject(currentStageModel);
+        currentStageModel = null;
+      }
+      mixer = null;
+      activeAction = null;
+
+      try {
+        const gltf = await loader.loadAsync(item.url);
+        const model = gltf.scene;
+        fitCameraAndCenter(model, stageCam);
+        // Place bottom cleanly on grid (-0.85)
+        const b = new THREE.Box3().setFromObject(model);
+        model.position.y -= b.min.y + 0.85;
+
+        stageScene.add(model);
+        currentStageModel = model;
+
+        // Stats + Bones
+        let tris = 0, meshes = 0;
+        const bones = [];
+        model.traverse(o => {
+          if (o.isMesh) {
+            meshes++;
+            const idx = o.geometry.index;
+            tris += idx ? idx.count / 3 : (o.geometry.attributes.position ? o.geometry.attributes.position.count / 3 : 0);
+          }
+          if (o.isBone || /hand|wrist|sword|head|weapon/i.test(o.name)) {
+            if (o.name) bones.push(o.name);
+          }
+        });
+        document.getElementById('st-tris').innerText = Math.round(tris).toLocaleString();
+        document.getElementById('st-meshes').innerText = meshes;
+        document.getElementById('bone-box').innerText = bones.length ? [...new Set(bones)].join(', ') : 'Static mesh (no skeleton)';
+
+        // Animations
+        const animListEl = document.getElementById('anim-list');
+        const clips = gltf.animations || [];
+        document.getElementById('anim-count').innerText = clips.length;
+        animListEl.innerHTML = '';
+
+        if (clips.length > 0) {
+          mixer = new THREE.AnimationMixer(model);
+          clips.forEach((clip, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'anim-btn' + (idx === 0 ? ' active' : '');
+            btn.innerText = clip.name || `Clip ${idx}`;
+            btn.onclick = () => {
+              document.querySelectorAll('.anim-btn').forEach(b => b.classList.remove('active'));
+              btn.classList.add('active');
+              if (activeAction) activeAction.stop();
+              activeAction = mixer.clipAction(clip);
+              activeAction.play();
+            };
+            animListEl.appendChild(btn);
+          });
+          // Prefer Idle or Walk clip by default
+          const pref = clips.find(c => /idle|walk|fly/i.test(c.name)) || clips[0];
+          activeAction = mixer.clipAction(pref);
+          activeAction.play();
+          Array.from(animListEl.children).forEach(b => {
+            b.classList.toggle('active', b.innerText === pref.name);
+          });
+        } else {
+          animListEl.innerHTML = '<span style="font-size:11px; color:#64748b;">No embedded clips</span>';
+        }
+      } catch (err) {
+        document.getElementById('stage-title').innerText = 'Failed to load model';
+      }
+    }
+
+    document.getElementById('btn-iso-snap').onclick = () => {
+      controls.autoRotate = false;
+      stageCam.position.set(2.5, 2.04, 2.5);
+      controls.target.set(0, -0.1, 0);
+      controls.update();
+    };
+
+    function animateStage() {
+      requestAnimationFrame(animateStage);
+      const dt = clock.getDelta();
+      if (mixer) mixer.update(dt);
+      controls.update();
+      stageRenderer.render(stageScene, stageCam);
+    }
+    animateStage();
+
+    // =========================================================================
+    // 3. FILTERING, KEEP/DROP CURATION & GITHUB EXPORT
+    // =========================================================================
+    function setDecision(id, status) {
+      if (decisions[id] === status) {
+        delete decisions[id];
+      } else {
+        decisions[id] = status;
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(decisions));
+      updateStatsBadge();
+      renderPage(false);
+    }
+
+    function updateStatsBadge() {
+      const kept = Object.values(decisions).filter(v => v === 'KEEP').length;
+      const dropped = Object.values(decisions).filter(v => v === 'DROP').length;
+      document.getElementById('total-badge').innerText =
+        `${catalog.length} Total • ✅ ${kept} Kept • ❌ ${dropped} Dropped`;
+    }
+
+    function buildCategories() {
+      const counts = { ALL: catalog.length };
+      catalog.forEach(i => { counts[i.category] = (counts[i.category] || 0) + 1; });
+      const bar = document.getElementById('cat-bar');
+      bar.innerHTML = '';
+      Object.entries(counts).forEach(([cat, n]) => {
+        const pill = document.createElement('div');
+        pill.className = 'cat-pill' + (cat === activeCat ? ' active' : '');
+        pill.innerText = `${cat} (${n})`;
+        pill.onclick = () => {
+          activeCat = cat;
+          currentPage = 0;
+          buildCategories();
+          applyFilters();
+        };
+        bar.appendChild(pill);
+      });
+    }
+
+    function applyFilters() {
+      const q = document.getElementById('search-box').value.trim().toLowerCase();
+      const sty = document.getElementById('style-filter').value;
+      const src = document.getElementById('source-filter').value;
+      const st = document.getElementById('status-filter').value;
+
+      filtered = catalog.filter(item => {
+        if (activeCat !== 'ALL' && item.category !== activeCat) return false;
+        if (sty === 'NO_CUTE' && (item.style === 'Chibi' || item.style === 'Blocky' || item.style === 'Modern')) return false;
+        else if (sty !== 'ALL' && sty !== 'NO_CUTE' && item.style !== sty) return false;
+        if (src !== 'ALL' && item.source !== src) return false;
+        const d = decisions[item.id];
+        if (st === 'UNDECIDED' && d) return false;
+        if (st === 'KEEP' && d !== 'KEEP') return false;
+        if (st === 'DROP' && d !== 'DROP') return false;
+        if (q && !(item.name + ' ' + item.pack + ' ' + item.file + ' ' + item.style).toLowerCase().includes(q)) return false;
+        return true;
+      });
+      currentPage = 0;
+      renderPage(true);
+    }
+
+    function renderPage(reRenderThumbs = true) {
+      const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+      currentPage = Math.max(0, Math.min(currentPage, totalPages - 1));
+      const slice = filtered.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
+
+      document.getElementById('summary-text').innerText = `Showing ${slice.length} of ${filtered.length} matching entities`;
+      document.getElementById('page-label').innerText = `Page ${currentPage + 1} / ${totalPages}`;
+
+      const grid = document.getElementById('grid-wrap');
+      grid.innerHTML = '';
+
+      slice.forEach(item => {
+        const d = decisions[item.id];
+        const card = document.createElement('div');
+        card.className = 'card' +
+          (selectedItem && selectedItem.id === item.id ? ' selected' : '') +
+          (d === 'KEEP' ? ' kept' : d === 'DROP' ? ' dropped' : '');
+        card.dataset.id = item.id;
+
+        card.innerHTML = `
+          <div class="thumb-box">
+            <span class="source-tag">${item.style || item.source} • ${item.source}</span>
+            ${d === 'KEEP' ? '<span class="status-tag tag-kept">KEPT</span>' : d === 'DROP' ? '<span class="status-tag tag-dropped">DROPPED</span>' : ''}
+            <span class="thumb-loading">Rendering 3D...</span>
+            <img id="thumb-${item.id}" style="display:none;" alt="${item.name}" />
+          </div>
+          <div class="card-body">
+            <div class="card-title" title="${item.name}">${item.name}</div>
+            <div class="card-meta"><span>${item.pack}</span><span>${item.sizeKB} KB</span></div>
+            <div class="card-actions">
+              <button class="btn-keep">✅ Keep</button>
+              <button class="btn-drop">❌ Drop</button>
+            </div>
+          </div>
+        `;
+        card.onclick = (e) => {
+          if (e.target.classList.contains('btn-keep')) { e.stopPropagation(); setDecision(item.id, 'KEEP'); return; }
+          if (e.target.classList.contains('btn-drop')) { e.stopPropagation(); setDecision(item.id, 'DROP'); return; }
+          inspectModel(item);
+        };
+        grid.appendChild(card);
+      });
+
+      if (reRenderThumbs) {
+        thumbQueueToken++;
+        renderThumbnailsForPage(slice, thumbQueueToken);
+      } else {
+        // Restore cached images instantly
+        slice.forEach(item => {
+          const img = document.getElementById('thumb-' + item.id);
+          if (img && thumbCache.has(item.id)) {
+            img.src = thumbCache.get(item.id);
+            img.style.display = 'block';
+            img.previousElementSibling.style.display = 'none';
+          }
+        });
+      }
+    }
+
+    document.getElementById('search-box').addEventListener('input', applyFilters);
+    document.getElementById('style-filter').addEventListener('change', applyFilters);
+    document.getElementById('source-filter').addEventListener('change', applyFilters);
+    document.getElementById('status-filter').addEventListener('change', applyFilters);
+    document.getElementById('prev-page').onclick = () => { if (currentPage > 0) { currentPage--; renderPage(true); } };
+    document.getElementById('next-page').onclick = () => { currentPage++; renderPage(true); };
+
+    document.getElementById('stage-keep').onclick = () => { if (selectedItem) setDecision(selectedItem.id, 'KEEP'); };
+    document.getElementById('stage-drop').onclick = () => { if (selectedItem) setDecision(selectedItem.id, 'DROP'); };
+
+    document.getElementById('btn-keep-page').onclick = () => {
+      const slice = filtered.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
+      slice.forEach(i => decisions[i.id] = 'KEEP');
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(decisions));
+      updateStatsBadge();
+      renderPage(false);
+    };
+
+    document.getElementById('btn-export').onclick = () => {
+      const keptItems = catalog.filter(i => decisions[i.id] === 'KEEP');
+      const droppedItems = catalog.filter(i => decisions[i.id] === 'DROP');
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        keptCount: keptItems.length,
+        droppedCount: droppedItems.length,
+        githubBaseUrlHint: "https://raw.githubusercontent.com/<USER>/<REPO>/main/assets_3d/",
+        kept: keptItems
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'kept_entities_github_manifest.json';
+      a.click();
+    };
+
+    // Keyboard curation shortcuts
+    window.addEventListener('keydown', e => {
+      if (document.activeElement.tagName === 'INPUT') return;
+      if (e.key.toLowerCase() === 'k' && selectedItem) setDecision(selectedItem.id, 'KEEP');
+      if (e.key.toLowerCase() === 'd' && selectedItem) setDecision(selectedItem.id, 'DROP');
+      if (e.key === 'ArrowRight') { currentPage++; renderPage(true); }
+      if (e.key === 'ArrowLeft' && currentPage > 0) { currentPage--; renderPage(true); }
+    });
+
+    // Boot
+    fetch('assets_3d/catalog.json')
+      .then(r => r.json())
+      .then(data => {
+        catalog = data;
+        updateStatsBadge();
+        buildCategories();
+        applyFilters();
+        if (filtered.length > 0) inspectModel(filtered[0]);
+      });
+  </script>
+</body>
+</html>

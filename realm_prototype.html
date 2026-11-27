@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Realms of Will — True 3D Isometric Kingdom (Zero-Lag Instanced)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      background: #0c121b; color: #f1f5f9;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    #game-canvas { display: block; width: 100vw; height: 100vh; cursor: crosshair; }
+    #hud { position: absolute; inset: 0; pointer-events: none; }
+    .card {
+      pointer-events: auto;
+      background: rgba(11, 16, 26, 0.84);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    }
+    #top-left {
+      position: absolute; top: 16px; left: 16px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .hero-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .hero-btn {
+      background: #172030; color: #cbd5e1; border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px; padding: 6px 10px; font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: all 0.12s ease;
+    }
+    .hero-btn:hover { background: #233046; }
+    .hero-btn.active {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #0b0f17; border-color: #f59e0b;
+    }
+    #top-right {
+      position: absolute; top: 16px; right: 16px;
+      display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
+    }
+    .perf-row {
+      display: flex; gap: 12px; font-family: monospace; font-size: 12px; font-weight: 700;
+    }
+    .perf-ok { color: #10b981; }
+    .perf-info { color: #38bdf8; }
+    .btn-action {
+      background: #172030; color: #f8fafc; border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 8px; padding: 6px 11px; font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .btn-action:hover { border-color: #f59e0b; }
+    .btn-curator {
+      background: linear-gradient(135deg, #38bdf8, #0284c7);
+      color: #082f49; border: none; font-weight: 800;
+    }
+    #bottom-bar {
+      position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; font-size: 12px; color: #cbd5e1;
+      border-radius: 30px; padding: 9px 18px;
+    }
+    .kbd {
+      background: rgba(255,255,255,0.14); color: #fff;
+      padding: 2px 7px; border-radius: 5px; font-weight: 800; margin-right: 4px;
+    }
+    #compass {
+      position: absolute; bottom: 18px; right: 18px;
+      width: 68px; height: 68px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 800; color: #94a3b8;
+    }
+    #needle {
+      width: 4px; height: 30px; border-radius: 2px;
+      background: linear-gradient(to top, #38bdf8 50%, #f59e0b 50%);
+      transition: transform 0.08s linear;
+    }
+    #loading-banner {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      padding: 16px 26px; font-size: 14px; font-weight: 700;
+      border-color: #f59e0b;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game-canvas"></canvas>
+
+  <div id="hud">
+    <div id="top-left" class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+        <span style="font-weight:800; font-size:14px;">👑 Realms of Will — True Isometric 3D</span>
+        <span id="dir-label" style="font-size:11px; color:#f59e0b; font-weight:800;">SE</span>
+      </div>
+      <div class="hero-row" id="hero-switcher">
+        <button class="hero-btn active" data-hero="king">👑 King</button>
+        <button class="hero-btn" data-hero="knight">⚔️ Knight</button>
+        <button class="hero-btn" data-hero="ranger">🗡️ Ranger</button>
+        <button class="hero-btn" data-hero="adventurer">🧭 Adventurer</button>
+        <button class="hero-btn" data-hero="farmer">👨‍🌾 Peasant</button>
+      </div>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <button class="btn-action" id="btn-fire">🔥 Ignite Fire Sword [R]</button>
+        <button class="btn-action" id="btn-cam">🔄 Rotate Cam [Q/E]</button>
+      </div>
+    </div>
+
+    <div id="top-right" class="card">
+      <div class="perf-row">
+        <span class="perf-ok" id="fps-out">FPS: --</span>
+        <span class="perf-info" id="draws-out">Draw Calls: --</span>
+        <span class="perf-info" id="tris-out">Tris: --</span>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-action" id="btn-eco">⚡ Eco Mode: ON</button>
+        <button class="btn-action btn-curator" onclick="location.href='open_world.html'">
+          🌍 Open World (WASM)
+        </button>
+        <button class="btn-action btn-curator" onclick="location.href='asset_inspector.html'">
+          🎨 Inspect All 2,817 Entities
+        </button>
+      </div>
+    </div>
+
+    <div id="bottom-bar" class="card">
+      <span><span class="kbd">WASD</span> 8-Dir Move</span>
+      <span><span class="kbd">Shift</span> Sprint</span>
+      <span><span class="kbd">Space / Click</span> Sword Slash</span>
+      <span><span class="kbd">F</span> Block</span>
+      <span><span class="kbd">R</span> Fire Sword</span>
+      <span><span class="kbd">Scroll</span> Zoom</span>
+    </div>
+
+    <div id="compass" class="card">
+      <div id="needle"></div>
+    </div>
+
+    <div id="loading-banner" class="card">Loading Instanced 3D Kingdom...</div>
+  </div>
+
+  <script type="module">
+    import * as THREE from './libs/three/three.module.min.js';
+    import { GLTFLoader } from './libs/three/loaders/GLTFLoader.js';
+
+    // =========================================================================
+    // 1. RENDERER & TRUE ORTHOGRAPHIC ISOMETRIC CAMERA (Eco-Optimized!)
+    // =========================================================================
+    const canvas = document.getElementById('game-canvas');
+    let ecoMode = true;
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: false,
+      powerPreference: 'low-power'
+    });
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.shadowMap.enabled = false; // Zero shadow-map overhead for low-end laptops!
+    renderer.setPixelRatio(1.0);
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0c1420);
+    scene.fog = new THREE.Fog(0x0c1420, 42, 88);
+
+    // Orthographic Isometric Camera
+    let frustumSize = 18;
+    const aspect = window.innerWidth / window.innerHeight;
+    const camera = new THREE.OrthographicCamera(
+      (-frustumSize * aspect) / 2,
+      (frustumSize * aspect) / 2,
+      frustumSize / 2,
+      -frustumSize / 2,
+      0.1,
+      200
+    );
+
+    let camAngleIdx = 0; // 4 isometric yaw angles (45, 135, 225, 315)
+    const CAM_YAWS = [Math.PI * 0.25, Math.PI * 0.75, Math.PI * 1.25, Math.PI * 1.75];
+    const CAM_DIST = 34;
+
+    function updateCameraTransform(tx, tz) {
+      const yaw = CAM_YAWS[camAngleIdx];
+      const horiz = Math.cos(Math.atan(1 / Math.SQRT2)) * CAM_DIST;
+      const vert = Math.sin(Math.atan(1 / Math.SQRT2)) * CAM_DIST * 1.12;
+      camera.position.set(tx + Math.sin(yaw) * horiz, vert, tz + Math.cos(yaw) * horiz);
+      camera.lookAt(tx, 0.8, tz);
+    }
+
+    function updateProjection() {
+      const a = window.innerWidth / window.innerHeight;
+      camera.left = (-frustumSize * a) / 2;
+      camera.right = (frustumSize * a) / 2;
+      camera.top = frustumSize / 2;
+      camera.bottom = -frustumSize / 2;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight, false);
+    }
+    window.addEventListener('resize', updateProjection);
+
+    // Crisp Isometric Lighting (Zero expensive shadow maps)
+    scene.add(new THREE.HemisphereLight(0xdbeafe, 0x1e293b, 1.35));
+    const sun = new THREE.DirectionalLight(0xfff1d6, 1.75);
+    sun.position.set(16, 28, 12);
+    scene.add(sun);
+
+    const loader = new GLTFLoader();
+
+    // =========================================================================
+    // 2. GPU INSTANCING ENGINE (1 Draw Call per Prop Type!)
+    // =========================================================================
+    const shadowMatrices = [];
+
+    function normalizeTransform(root, targetHeight) {
+      root.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(root);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      const scale = targetHeight / Math.max(size.y, 0.001);
+      root.scale.multiplyScalar(scale);
+      root.updateMatrixWorld(true);
+
+      const box2 = new THREE.Box3().setFromObject(root);
+      const center = new THREE.Vector3();
+      box2.getCenter(center);
+      root.position.set(-center.x, -box2.min.y, -center.z);
+      root.updateMatrixWorld(true);
+      return scale;
+    }
+
+    async function addInstancedModel(url, placements, targetHeight, shadowScale = 0) {
+      const gltf = await loader.loadAsync(url);
+      const root = gltf.scene;
+      normalizeTransform(root, targetHeight);
+
+      // Extract each mesh geometry + material into its own InstancedMesh
+      const meshParts = [];
+      root.traverse(obj => {
+        if (obj.isMesh) {
+          meshParts.push({
+            geom: obj.geometry,
+            mat: obj.material,
+            localMatrix: obj.matrixWorld.clone()
+          });
+        }
+      });
+
+      const worldMat = new THREE.Matrix4();
+      const pos = new THREE.Vector3();
+      const quat = new THREE.Quaternion();
+      const scl = new THREE.Vector3();
+      const finalMat = new THREE.Matrix4();
+
+      meshParts.forEach(part => {
+        const inst = new THREE.InstancedMesh(part.geom, part.mat, placements.length);
+        placements.forEach((p, idx) => {
+          pos.set(p.x, p.y || 0, p.z);
+          quat.setFromEuler(new THREE.Euler(0, p.ry || 0, 0));
+          const s = p.s || 1;
+          scl.set(s, s, s);
+          worldMat.compose(pos, quat, scl);
+          finalMat.multiplyMatrices(worldMat, part.localMatrix);
+          inst.setMatrixAt(idx, finalMat);
+        });
+        inst.instanceMatrix.needsUpdate = true;
+        inst.computeBoundingSphere();
+        scene.add(inst);
+      });
+
+      if (shadowScale > 0) {
+        placements.forEach(p => {
+          const m = new THREE.Matrix4();
+          const s = (p.s || 1) * shadowScale;
+          m.compose(
+            new THREE.Vector3(p.x, 0.03, p.z),
+            new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0)),
+            new THREE.Vector3(s, s, 1)
+          );
+          shadowMatrices.push(m);
+        });
+      }
+    }
+
+    // Build entire instanced Kingdom Courtyard
+    async function buildKingdomWorld() {
+      // Flat green ground plane underneath hexes
+      const groundMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(140, 140),
+        new THREE.MeshLambertMaterial({ color: 0x172b23 })
+      );
+      groundMesh.rotation.x = -Math.PI / 2;
+      groundMesh.position.y = -0.02;
+      scene.add(groundMesh);
+
+      // 1. Seamless Interlocking Hex Grass Terrain Grid (Zero Gaps!)
+      const hexPlacements = [];
+      const hexW = 2.0;
+      const hexDZ = 2.3094 * 0.75; // 1.732 exact point-top hex row height
+      for (let gz = -7; gz <= 7; gz++) {
+        for (let gx = -7; gx <= 7; gx++) {
+          const x = gx * hexW + (Math.abs(gz) % 2 === 1 ? hexW * 0.5 : 0);
+          const z = gz * hexDZ;
+          hexPlacements.push({ x, y: -0.96, z, s: 1.0 });
+        }
+      }
+      await addInstancedModel('assets_3d/kaykit/medieval_hexagon/tiles/base/hex_grass.gltf', hexPlacements, 1.0);
+
+      // 2. Grand Kingdom Keep & Civic Buildings
+      await addInstancedModel('assets_3d/kaykit/medieval_hexagon/buildings/blue/building_castle_blue.gltf',
+        [{ x: 0, y: 0, z: -9.5, ry: 0 }], 5.2, 3.0);
+      await addInstancedModel('assets_3d/kaykit/medieval_hexagon/buildings/blue/building_blacksmith_blue.gltf',
+        [{ x: 6.5, y: 0, z: -4.5, ry: -0.6 }], 2.8, 1.8);
+      await addInstancedModel('assets_3d/kaykit/medieval_hexagon/buildings/blue/building_tavern_blue.gltf',
+        [{ x: -6.8, y: 0, z: -4.5, ry: 0.5 }], 2.8, 1.8);
+      await addInstancedModel('assets_3d/kaykit/medieval_hexagon/buildings/blue/building_barracks_blue.gltf',
+        [{ x: 7.2, y: 0, z: 3.5, ry: -1.3 }], 2.9, 1.8);
+
+      // 3. Instanced Kenney Castle Walls, Towers & Gate (Perimeter Fortress)
+      const wallPlacements = [];
+      for (let i = -8; i <= 8; i += 2) {
+        if (Math.abs(i) >= 2) wallPlacements.push({ x: i, y: 0, z: 9, ry: 0 }); // Front wall with gate gap
+        wallPlacements.push({ x: i, y: 0, z: -13, ry: 0 }); // Back wall
+        wallPlacements.push({ x: -10, y: 0, z: i - 2, ry: Math.PI / 2 }); // Left wall
+        wallPlacements.push({ x: 10, y: 0, z: i - 2, ry: Math.PI / 2 }); // Right wall
+      }
+      await addInstancedModel('assets_3d/kenney/castle_kit/wall.glb', wallPlacements, 2.2, 0.8);
+
+      await addInstancedModel('assets_3d/kenney/castle_kit/gate.glb',
+        [{ x: 0, y: 0, z: 9, ry: Math.PI / 2 }], 2.7, 1.4);
+
+      await addInstancedModel('assets_3d/kenney/castle_kit/tower-square-base.glb', [
+        { x: -10, y: 0, z: 9 }, { x: 10, y: 0, z: 9 },
+        { x: -10, y: 0, z: -13 }, { x: 10, y: 0, z: -13 },
+        { x: -2.2, y: 0, z: 9 }, { x: 2.2, y: 0, z: 9 }
+      ], 3.4, 1.3);
+
+      // 4. Outer Forest Trees & Mountains (Instanced)
+      const treeSpots = [
+        {x:-14,z:-8},{x:-16,z:-2},{x:-15,z:4},{x:-13,z:11},{x:-8,z:14},
+        {x:14,z:-9},{x:15,z:-1},{x:14,z:6},{x:13,z:12},{x:8,z:14},
+        {x:-13,z:-15},{x:-6,z:-17},{x:6,z:-17},{x:13,z:-15},{x:0,z:-18}
+      ];
+      await addInstancedModel('assets_3d/kaykit/medieval_hexagon/decoration/nature/trees_A_large.gltf', treeSpots, 3.0, 1.4);
+
+      const mtnSpots = [
+        {x:-20,z:-16,ry:0.4},{x:-18,z:-19,ry:1.2},{x:20,z:-16,ry:2.1},
+        {x:18,z:-20,ry:0.9},{x:-21,z:8,ry:1.7},{x:21,z:9,ry:2.8}
+      ];
+      await addInstancedModel('assets_3d/kaykit/medieval_hexagon/decoration/nature/mountain_A.gltf', mtnSpots, 5.4, 3.0);
+
+      // 5. Gold Bars & Copper Ore Deposits (Near Blacksmith)
+      await addInstancedModel('assets_3d/kaykit/resource_bits/Gold_Bars_Stack_Medium.gltf',
+        [{ x: 4.5, y: 0, z: -2.2 }, { x: 5.5, y: 0, z: -1.8 }], 0.85, 0.7);
+      await addInstancedModel('assets_3d/kaykit/resource_bits/Copper_Nuggets.gltf',
+        [{ x: -13, y: 0, z: 2 }, { x: 13, y: 0, z: -5 }, { x: -5, y: 0, z: 13 }], 0.85, 0.7);
+
+      // 6. Glowing Forge Campfire Pit (For Fire Sword Enchantment!)
+      const fireMesh = new THREE.Mesh(
+        new THREE.ConeGeometry(0.55, 1.1, 6),
+        new THREE.MeshBasicMaterial({ color: 0xf97316 })
+      );
+      fireMesh.position.set(4.0, 0.55, 1.2);
+      scene.add(fireMesh);
+
+      const fireBase = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.85, 1.0, 0.25, 8),
+        new THREE.MeshLambertMaterial({ color: 0x334155 })
+      );
+      fireBase.position.set(4.0, 0.12, 1.2);
+      scene.add(fireBase);
+
+      const fireLight = new THREE.PointLight(0xf59e0b, 3.5, 9);
+      fireLight.position.set(4.0, 1.6, 1.2);
+      scene.add(fireLight);
+
+      // Batch ALL static contact shadows into 1 SINGLE InstancedMesh!
+      if (shadowMatrices.length > 0) {
+        const sGeo = new THREE.CircleGeometry(1, 14);
+        const sMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.34, depthWrite: false });
+        const sInst = new THREE.InstancedMesh(sGeo, sMat, shadowMatrices.length);
+        shadowMatrices.forEach((m, i) => sInst.setMatrixAt(i, m));
+        sInst.instanceMatrix.needsUpdate = true;
+        scene.add(sInst);
+      }
+    }
+
+    // =========================================================================
+    // 3. PLAYABLE REALISTIC 3D HEROES WITH BONE-ATTACHED SWORDS & REAL ANIMATIONS
+    // =========================================================================
+    const HERO_CONFIGS = {
+      king: {
+        url: 'assets_3d/poly_pizza/king__King__I1gTjmuK2m.glb',
+        height: 2.35,
+        anims: {
+          idle: 'CharacterArmature|Idle_Sword',
+          walk: 'CharacterArmature|Walk',
+          run: 'CharacterArmature|Run',
+          attack: 'CharacterArmature|Sword_Slash',
+          block: 'CharacterArmature|Interact'
+        },
+        attachSwordToBones: ['Middle1R', 'WristR', 'HandR'],
+        attachShieldToBones: ['WristL', 'LowerArmL']
+      },
+      knight: {
+        url: 'assets_3d/quaternius/single_knight_pack/KnightCharacter.glb',
+        height: 2.35,
+        anims: {
+          idle: 'HumanArmature|Idle_swordRight',
+          walk: 'HumanArmature|Walking',
+          run: 'HumanArmature|Run_swordRight',
+          attack: 'HumanArmature|Run_swordAttack',
+          block: 'HumanArmature|Roll_sword'
+        },
+        attachSwordToBones: ['MiddleHandR', 'WristR', 'HandR'],
+        attachShieldToBones: ['MiddleHandL', 'WristL']
+      },
+      ranger: {
+        url: 'assets_3d/poly_pizza/warrior__Hooded_Adventurer__y9KWOVG21R.glb',
+        height: 2.35,
+        anims: {
+          idle: 'CharacterArmature|Idle_Sword',
+          walk: 'CharacterArmature|Walk',
+          run: 'CharacterArmature|Run',
+          attack: 'CharacterArmature|Sword_Slash',
+          block: 'CharacterArmature|Interact'
+        }
+      },
+      adventurer: {
+        url: 'assets_3d/poly_pizza/fantasy_character__Adventurer__5EGWBMpuXq.glb',
+        height: 2.35,
+        anims: {
+          idle: 'CharacterArmature|Idle_Sword',
+          walk: 'CharacterArmature|Walk',
+          run: 'CharacterArmature|Run',
+          attack: 'CharacterArmature|Sword_Slash',
+          block: 'CharacterArmature|Interact'
+        },
+        attachSwordToBones: ['Middle1R', 'WristR'],
+        attachShieldToBones: ['WristL']
+      },
+      farmer: {
+        url: 'assets_3d/poly_pizza/villager__Farmer__7pn3R6hPvE.glb',
+        height: 2.35,
+        anims: {
+          idle: 'CharacterArmature|Idle_Sword',
+          walk: 'CharacterArmature|Walk',
+          run: 'CharacterArmature|Run',
+          attack: 'CharacterArmature|Sword_Slash',
+          block: 'CharacterArmature|Interact'
+        },
+        attachSwordToBones: ['Middle1R', 'WristR']
+      }
+    };
+
+    function findBone(root, candidates) {
+      const wanted = candidates.map(c => c.replace(/[^a-z0-9]/gi, '').toLowerCase());
+      let found = null;
+      root.traverse(o => {
+        if (found) return;
+        const clean = (o.name || '').replace(/[^a-z0-9]/gi, '').toLowerCase();
+        if (wanted.includes(clean)) found = o;
+      });
+      return found;
+    }
+
+    const playerState = {
+      x: 0,
+      z: 3.5,
+      yaw: 0,
+      targetYaw: 0,
+      speed: 5.5,
+      fireEnchanted: false,
+      attacking: 0,
+      blocking: false,
+      heroKey: 'king'
+    };
+
+    const playerGroup = new THREE.Group();
+    playerGroup.position.set(playerState.x, 0, playerState.z);
+    scene.add(playerGroup);
+
+    // Player contact shadow
+    const playerShadow = new THREE.Mesh(
+      new THREE.CircleGeometry(0.8, 16),
+      new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.42, depthWrite: false })
+    );
+    playerShadow.rotation.x = -Math.PI / 2;
+    playerShadow.position.y = 0.04;
+    playerGroup.add(playerShadow);
+
+    // Cache loaded hero rigs & reusable weapons
+    const loadedHeroes = {};
+    let swordModelTemplate = null;
+    let shieldModelTemplate = null;
+    let currentHero = null;
+    let currentAction = null;
+    let attachedSwordMeshes = [];
+
+    async function preloadWeapons() {
+      const [swGltf, shGltf] = await Promise.all([
+        loader.loadAsync('assets_3d/quaternius/single_knight_pack/Sword.glb'),
+        loader.loadAsync('assets_3d/poly_pizza/paladin__Shield__srN1KGAO7f.glb')
+      ]);
+      // Scale Sword.glb without shifting handle pivot at (0,0,0)
+      swGltf.scene.updateMatrixWorld(true);
+      const swBox = new THREE.Box3().setFromObject(swGltf.scene);
+      const swSize = new THREE.Vector3();
+      swBox.getSize(swSize);
+      const swScale = 1.28 / Math.max(swSize.x, swSize.y, swSize.z, 0.001);
+      swGltf.scene.scale.multiplyScalar(swScale);
+      swordModelTemplate = swGltf.scene;
+
+      shGltf.scene.updateMatrixWorld(true);
+      const shBox = new THREE.Box3().setFromObject(shGltf.scene);
+      const shSize = new THREE.Vector3();
+      shBox.getSize(shSize);
+      const shScale = 0.85 / Math.max(shSize.x, shSize.y, shSize.z, 0.001);
+      shGltf.scene.scale.multiplyScalar(shScale);
+      shieldModelTemplate = shGltf.scene;
+    }
+
+    function applyFireSwordVisual() {
+      attachedSwordMeshes.forEach(mesh => {
+        mesh.traverse(o => {
+          if (o.isMesh && o.material) {
+            if (!o.userData.origMat) o.userData.origMat = o.material;
+            if (playerState.fireEnchanted) {
+              const flameMat = o.userData.origMat.clone();
+              flameMat.emissive = new THREE.Color(0xf97316);
+              flameMat.emissiveIntensity = 1.6;
+              o.material = flameMat;
+            } else {
+              o.material = o.userData.origMat;
+            }
+          }
+        });
+      });
+    }
+
+    async function switchHero(key) {
+      playerState.heroKey = key;
+      document.querySelectorAll('.hero-btn').forEach(b => b.classList.toggle('active', b.dataset.hero === key));
+
+      if (currentHero) {
+        playerGroup.remove(currentHero.model);
+      }
+
+      if (!loadedHeroes[key]) {
+        const cfg = HERO_CONFIGS[key];
+        const gltf = await loader.loadAsync(cfg.url);
+        const model = gltf.scene;
+
+        normalizeTransform(model, cfg.height);
+
+        const weaponMeshes = [];
+        if (cfg.attachSwordToBones && swordModelTemplate) {
+          const rBone = findBone(model, cfg.attachSwordToBones);
+          if (rBone) {
+            model.updateMatrixWorld(true);
+            const wScale = new THREE.Vector3();
+            rBone.getWorldScale(wScale);
+            const invScale = 1 / Math.max((wScale.x + wScale.y + wScale.z) / 3, 0.0001);
+
+            const sw = swordModelTemplate.clone(true);
+            sw.scale.multiplyScalar(invScale);
+            // Match Hooded_Adventurer palm grip orientation (+90° Z points +Y blade forward out of fist)
+            sw.rotation.set(0, 0, Math.PI * 0.5);
+            sw.position.set(0, 0.09 * invScale, -0.025 * invScale);
+            rBone.add(sw);
+            weaponMeshes.push(sw);
+          }
+        }
+        if (cfg.attachShieldToBones && shieldModelTemplate) {
+          const lBone = findBone(model, cfg.attachShieldToBones);
+          if (lBone) {
+            model.updateMatrixWorld(true);
+            const wScale = new THREE.Vector3();
+            lBone.getWorldScale(wScale);
+            const invScale = 1 / Math.max((wScale.x + wScale.y + wScale.z) / 3, 0.0001);
+
+            const sh = shieldModelTemplate.clone(true);
+            sh.scale.multiplyScalar(invScale);
+            sh.rotation.set(0, Math.PI * 0.5, 0);
+            sh.position.set(-0.08 * invScale, 0.08 * invScale, 0);
+            lBone.add(sh);
+          }
+        }
+        // Track built-in sword mesh (e.g., Hooded_Adventurer) so Fire Sword works on ALL heroes
+        model.traverse(o => {
+          if (o.isMesh && /sword|blade|dagger/i.test(o.name) && o.visible) {
+            weaponMeshes.push(o);
+          }
+        });
+
+        const mixer = new THREE.AnimationMixer(model);
+        const actions = {};
+        for (const [actKey, clipName] of Object.entries(cfg.anims)) {
+          const clip = gltf.animations.find(c => c.name === clipName) || gltf.animations[0];
+          if (clip) actions[actKey] = mixer.clipAction(clip);
+        }
+        loadedHeroes[key] = { model, mixer, actions, weaponMeshes };
+      }
+
+      currentHero = loadedHeroes[key];
+      attachedSwordMeshes = currentHero.weaponMeshes;
+      applyFireSwordVisual();
+      playerGroup.add(currentHero.model);
+      currentAction = null;
+      playHeroAnim('idle');
+    }
+
+    function playHeroAnim(name, fade = 0.15) {
+      if (!currentHero || !currentHero.actions[name]) return;
+      const next = currentHero.actions[name];
+      if (currentAction === next) return;
+      if (currentAction) currentAction.fadeOut(fade);
+      next.reset().fadeIn(fade).play();
+      if (name === 'attack') {
+        next.setLoop(THREE.LoopOnce);
+        next.clampWhenFinished = true;
+      } else {
+        next.setLoop(THREE.LoopRepeat);
+      }
+      currentAction = next;
+    }
+
+    // =========================================================================
+    // 4. ANIMATED WORLD CREATURES (Flying 3D Dragon + Patrolling Wolf & Orc)
+    // =========================================================================
+    const worldMixers = [];
+    let dragonPivot = null;
+    let dragon2 = null;
+    let wolfUnit = null;
+    let orcUnit = null;
+    let giantUnit = null;
+
+    async function spawnAnimatedCreatures() {
+      // 1. Flying 3D Dragon circling high above the fortress
+      const dGltf = await loader.loadAsync('assets_3d/poly_pizza/dragon__Dragon__VBvzjFIYws.glb');
+      const dragon = dGltf.scene;
+      normalizeTransform(dragon, 4.4);
+      const dMixer = new THREE.AnimationMixer(dragon);
+      const flyClip = dGltf.animations.find(c => /flying/i.test(c.name)) || dGltf.animations[0];
+      if (flyClip) dMixer.clipAction(flyClip).play();
+      worldMixers.push(dMixer);
+
+      dragonPivot = new THREE.Group();
+      dragon.position.set(11, 7.2, 0);
+      dragon.rotation.y = Math.PI;
+      dragonPivot.add(dragon);
+      scene.add(dragonPivot);
+
+      // 2. Elder Dragon Evolved hovering near the Northern Keep & Mountains
+      const d2Gltf = await loader.loadAsync('assets_3d/poly_pizza/dragon__Dragon_Evolved__LlwD0QNUPj.glb');
+      dragon2 = d2Gltf.scene;
+      normalizeTransform(dragon2, 4.0);
+      const d2Mixer = new THREE.AnimationMixer(dragon2);
+      const d2Fly = d2Gltf.animations.find(c => /flying_idle|flying/i.test(c.name)) || d2Gltf.animations[0];
+      if (d2Fly) d2Mixer.clipAction(d2Fly).play();
+      worldMixers.push(d2Mixer);
+      dragon2.position.set(-10.5, 4.2, -10.5);
+      dragon2.rotation.y = Math.PI * 0.3;
+      scene.add(dragon2);
+
+      // 3. Giant Boss outside Eastern Ridge
+      const gGltf = await loader.loadAsync('assets_3d/poly_pizza/giant__Giant__BldaiPtyJa.glb');
+      const giant = gGltf.scene;
+      normalizeTransform(giant, 3.9);
+      const gMixer = new THREE.AnimationMixer(giant);
+      const gIdle = gGltf.animations.find(c => /idle/i.test(c.name)) || gGltf.animations[0];
+      if (gIdle) gMixer.clipAction(gIdle).play();
+      worldMixers.push(gMixer);
+      giantUnit = giant;
+      giantUnit.position.set(12.8, 0, 8.2);
+      giantUnit.rotation.y = -0.8;
+      scene.add(giantUnit);
+
+      // 4. Patrolling Wolf outside gate
+      const wGltf = await loader.loadAsync('assets_3d/quaternius/animals_pack/Wolf.glb');
+      const wolf = wGltf.scene;
+      normalizeTransform(wolf, 1.3);
+      const wMixer = new THREE.AnimationMixer(wolf);
+      const wWalk = wGltf.animations.find(c => /walk/i.test(c.name)) || wGltf.animations[0];
+      if (wWalk) wMixer.clipAction(wWalk).play();
+      worldMixers.push(wMixer);
+      wolfUnit = new THREE.Group();
+      wolfUnit.add(wolf);
+      scene.add(wolfUnit);
+
+      // 5. Patrolling Orc Raider near forest
+      const oGltf = await loader.loadAsync('assets_3d/poly_pizza/orc__Orc__5vO2YJsPEf.glb');
+      const orc = oGltf.scene;
+      normalizeTransform(orc, 2.35);
+      const oMixer = new THREE.AnimationMixer(orc);
+      const oWalk = oGltf.animations.find(c => /walk/i.test(c.name)) || oGltf.animations[0];
+      if (oWalk) oMixer.clipAction(oWalk).play();
+      worldMixers.push(oMixer);
+      orcUnit = new THREE.Group();
+      orcUnit.add(orc);
+      scene.add(orcUnit);
+    }
+
+    // =========================================================================
+    // 5. CONTROLS, 8-WAY ISOMETRIC MOVEMENT & UI BINDINGS
+    // =========================================================================
+    const keys = {};
+    const DIR_LABELS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+
+    window.addEventListener('keydown', e => {
+      const k = e.key.toLowerCase();
+      keys[k] = true;
+      if (k === ' ') triggerSlash();
+      if (k === 'r') toggleFireSword();
+      if (k === 'q') camAngleIdx = (camAngleIdx + 3) % 4;
+      if (k === 'e') camAngleIdx = (camAngleIdx + 1) % 4;
+    });
+    window.addEventListener('keyup', e => {
+      keys[e.key.toLowerCase()] = false;
+    });
+    canvas.addEventListener('mousedown', () => triggerSlash());
+    window.addEventListener('wheel', e => {
+      frustumSize = Math.max(8, Math.min(34, frustumSize + e.deltaY * 0.012));
+      updateProjection();
+    });
+
+    function triggerSlash() {
+      if (playerState.attacking <= 0) {
+        playerState.attacking = 0.45;
+        playHeroAnim('attack', 0.06);
+      }
+    }
+
+    function toggleFireSword() {
+      playerState.fireEnchanted = !playerState.fireEnchanted;
+      applyFireSwordVisual();
+      document.getElementById('btn-fire').innerText =
+        playerState.fireEnchanted ? '🔥 Fire Sword: ACTIVE [R]' : '🔥 Ignite Fire Sword [R]';
+    }
+
+    document.getElementById('btn-fire').onclick = toggleFireSword;
+    document.getElementById('btn-cam').onclick = () => { camAngleIdx = (camAngleIdx + 1) % 4; };
+    document.getElementById('btn-eco').onclick = () => {
+      ecoMode = !ecoMode;
+      renderer.setPixelRatio(ecoMode ? 1.0 : Math.min(window.devicePixelRatio, 2));
+      document.getElementById('btn-eco').innerText = ecoMode ? '⚡ Eco Mode: ON' : '✨ Crisp Mode: ON';
+    };
+
+    document.querySelectorAll('.hero-btn').forEach(btn => {
+      btn.onclick = () => switchHero(btn.dataset.hero);
+    });
+
+    // =========================================================================
+    // 6. MAIN LOOP (Locked Low-Overhead Simulation)
+    // =========================================================================
+    const clock = new THREE.Clock();
+    const dirVec = new THREE.Vector3();
+    const camRight = new THREE.Vector3();
+    const camFwd = new THREE.Vector3();
+    let fpsFrames = 0, fpsTimer = 0;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.05);
+      const elapsed = clock.elapsedTime;
+
+      // Screen-relative WASD mapped cleanly into true 3D Isometric plane
+      let inX = 0, inY = 0;
+      if (keys['w'] || keys['arrowup']) inY += 1;
+      if (keys['s'] || keys['arrowdown']) inY -= 1;
+      if (keys['a'] || keys['arrowleft']) inX -= 1;
+      if (keys['d'] || keys['arrowright']) inX += 1;
+
+      const sprinting = !!keys['shift'];
+      playerState.blocking = !!keys['f'];
+
+      if (playerState.attacking > 0) {
+        playerState.attacking -= dt;
+      }
+
+      // Auto-ignite when walking next to the Forge Campfire at (4.0, 1.2)!
+      if (!playerState.fireEnchanted && Math.hypot(playerState.x - 4.0, playerState.z - 1.2) < 1.5) {
+        toggleFireSword();
+      }
+
+      if ((inX !== 0 || inY !== 0) && playerState.attacking <= 0 && !playerState.blocking) {
+        // Derive ground-plane forward & right vectors from camera yaw
+        const yaw = CAM_YAWS[camAngleIdx];
+        camFwd.set(-Math.sin(yaw), 0, -Math.cos(yaw)).normalize();
+        camRight.set(Math.cos(yaw), 0, -Math.sin(yaw)).normalize();
+
+        dirVec.set(0, 0, 0).addScaledVector(camRight, inX).addScaledVector(camFwd, inY).normalize();
+        const spd = playerState.speed * (sprinting ? 1.55 : 1.0);
+        playerState.x = Math.max(-18, Math.min(18, playerState.x + dirVec.x * spd * dt));
+        playerState.z = Math.max(-18, Math.min(18, playerState.z + dirVec.z * spd * dt));
+
+        playerState.targetYaw = Math.atan2(dirVec.x, dirVec.z);
+
+        // Update 8-Way Compass HUD
+        let deg = (Math.atan2(inX, inY) * 180 / Math.PI + 360) % 360;
+        const oct = Math.round(deg / 45) % 8;
+        document.getElementById('dir-label').innerText = `Facing: ${DIR_LABELS[oct]}`;
+        document.getElementById('needle').style.transform = `rotate(${oct * 45}deg)`;
+
+        playHeroAnim(sprinting ? 'run' : 'walk');
+      } else if (playerState.attacking <= 0) {
+        playHeroAnim(playerState.blocking ? 'block' : 'idle');
+      }
+
+      // Smoothly turn 3D character toward 8-way bearing
+      let diff = playerState.targetYaw - playerState.yaw;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      playerState.yaw += diff * Math.min(1, dt * 14);
+
+      playerGroup.position.set(playerState.x, 0, playerState.z);
+      playerGroup.rotation.y = playerState.yaw;
+
+      if (currentHero) currentHero.mixer.update(dt);
+      worldMixers.forEach(m => m.update(dt));
+
+      // Animate Dragon & Patrol Units
+      if (dragonPivot) {
+        dragonPivot.rotation.y = elapsed * 0.25;
+        dragonPivot.position.y = Math.sin(elapsed * 1.5) * 0.6;
+      }
+      if (wolfUnit) {
+        const wa = elapsed * 0.55;
+        wolfUnit.position.set(Math.cos(wa) * 5.2, 0, 12.2 + Math.sin(wa) * 2.4);
+        wolfUnit.rotation.y = -wa;
+      }
+      if (orcUnit) {
+        const oa = elapsed * 0.35;
+        orcUnit.position.set(-12.5 + Math.cos(oa) * 2.5, 0, 5.0 + Math.sin(oa) * 3.5);
+        orcUnit.rotation.y = -oa;
+      }
+
+      updateCameraTransform(playerState.x, playerState.z);
+      renderer.render(scene, camera);
+
+      // Update live FPS / Draw Calls / Tris readout
+      fpsFrames++;
+      fpsTimer += dt;
+      if (fpsTimer >= 0.5) {
+        const fps = Math.round(fpsFrames / fpsTimer);
+        document.getElementById('fps-out').innerText = `FPS: ${fps}`;
+        document.getElementById('draws-out').innerText = `Draw Calls: ${renderer.info.render.calls}`;
+        document.getElementById('tris-out').innerText = `Tris: ${(renderer.info.render.triangles / 1000).toFixed(1)}k`;
+        fpsFrames = 0;
+        fpsTimer = 0;
+      }
+    }
+
+    // Boot everything
+    (async () => {
+      await preloadWeapons();
+      await buildKingdomWorld();
+      await switchHero('king');
+      await spawnAnimatedCreatures();
+      document.getElementById('loading-banner').style.display = 'none';
+      animate();
+    })();
+  </script>
+</body>
+</html>
